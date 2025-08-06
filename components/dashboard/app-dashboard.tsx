@@ -40,11 +40,6 @@ export default function Dashboard(): React.ReactNode {
 
   return (
     <>
-      <div className="flex flex-col">
-        <div className="text-gray-500">De Guzman Household</div>
-        <h1 className="text-3xl font-semibold">Finance Dashboard</h1>
-      </div>
-
       <div className="flex gap-4">
         {dashboardItems.map((item) => (
           <Card key={item.id} className="w-full flex">
