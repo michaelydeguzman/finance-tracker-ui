@@ -1,6 +1,7 @@
 "use client";
 
 import DarkModeTrigger from "../dark-mode-trigger";
+import { Separator } from "../ui/separator";
 import { SidebarTrigger } from "../ui/sidebar";
 import UserHeader from "./user";
 
@@ -10,6 +11,7 @@ export default function Header() {
       <SidebarTrigger />
       <div className="flex items-center gap-3">
         <DarkModeTrigger />
+        <Separator orientation="vertical" />
         <div className="flex items-center gap-2">
           <UserHeader />
         </div>

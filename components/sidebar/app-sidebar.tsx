@@ -46,13 +46,13 @@ export function AppSidebar() {
   const settings = [
     {
       title: "Households",
-      url: "/settings",
+      url: "/households",
       icon: House,
       color: "",
     },
     {
       title: "Categories",
-      url: "/settings",
+      url: "/categories",
       icon: Settings,
       color: "",
     },
@@ -61,7 +61,9 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarHeader>
-          <div className="flex gap-2 text-lg pl-2 pt-1">My Finance Tracker</div>
+          <div className="flex gap-2 text-lg pl-2 pt-1 font-semibold">
+            My Finance Tracker
+          </div>
         </SidebarHeader>
         <SidebarGroup>
           <SidebarGroupLabel>Pages</SidebarGroupLabel>
