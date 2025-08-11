@@ -13,6 +13,7 @@ import {
 import {
   Briefcase,
   Calendar,
+  CircleDollarSign,
   Cog,
   Home,
   House,
@@ -61,8 +62,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarHeader>
-          <div className="flex gap-2 text-lg pl-2 pt-1 font-semibold">
-            My Finance Tracker
+          <div className="flex gap-2 text-sm pl-2 pt-1 font-semibold items-center ">
+            <CircleDollarSign /> My Finance Tracker
           </div>
         </SidebarHeader>
         <SidebarGroup>
