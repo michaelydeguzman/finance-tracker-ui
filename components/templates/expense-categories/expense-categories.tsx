@@ -1,25 +1,25 @@
 "use client";
 
+import { SortButton } from "@/components/buttons/sortButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
+import { useSortableData } from "@/hooks/useSortableData";
 
 import { BanknoteArrowDownIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function ExpenseCategories() {
+  const newRef = useRef<HTMLInputElement>(null);
+  const [showAddRow, setShowAddRow] = useState(false);
+
   const { expenseCategories, addExpenseCategory } = useExpenseCategories();
 
-  const [showAddRow, setShowAddRow] = useState(false);
-  const newRef = useRef<HTMLInputElement>(null);
+  const { sortedData, sort, toggleSort } = useSortableData(
+    expenseCategories,
+    (c) => c
+  );
 
   const handleSaveClick = () => {
     if (!newRef.current) {
@@ -29,7 +29,6 @@ export default function ExpenseCategories() {
     var input = newRef.current.value;
 
     addExpenseCategory(input);
-
     setShowAddRow(false);
   };
 
@@ -44,8 +43,16 @@ export default function ExpenseCategories() {
     <div className="flex w-full flex-col border-2 border-gray-100 p-6 rounded-4xl gap-4">
       <div className="w-full flex justify-between items-center">
         <div className="font-semibold pl-2 flex flex-col gap-3">
-          <BanknoteArrowDownIcon /> Expense Categories
+          <BanknoteArrowDownIcon />
+          <div className="ml-[-16px]">
+            <SortButton
+              label="Expense Categories"
+              sort={sort}
+              onToggle={toggleSort}
+            />
+          </div>
         </div>
+
         <Button
           variant="secondary"
           onClick={() => {
@@ -60,7 +67,7 @@ export default function ExpenseCategories() {
       <div className="h-[calc(100vh-330px)] overflow-auto">
         <Table>
           <TableBody>
-            {expenseCategories?.map((category) => (
+            {sortedData?.map((category) => (
               <TableRow key={category}>
                 <TableCell>{category}</TableCell>
               </TableRow>

@@ -1,17 +1,24 @@
 "use client";
 
+import { SortButton } from "@/components/buttons/sortButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useIncomeCategories } from "@/hooks/useIncomeCategories";
+import { useSortableData } from "@/hooks/useSortableData";
 import { BanknoteArrowUpIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function IncomeCategories() {
-  const { incomeCategories, addIncomeCategory } = useIncomeCategories();
+  const newRef = useRef<HTMLInputElement>(null);
 
   const [showAddRow, setShowAddRow] = useState(false);
-  const newRef = useRef<HTMLInputElement>(null);
+
+  const { incomeCategories, addIncomeCategory } = useIncomeCategories();
+  const { sortedData, sort, toggleSort } = useSortableData(
+    incomeCategories,
+    (c) => c
+  );
 
   const handleSaveClick = () => {
     if (!newRef.current) {
@@ -21,7 +28,6 @@ export default function IncomeCategories() {
     var input = newRef.current.value;
 
     addIncomeCategory(input);
-
     setShowAddRow(false);
   };
 
@@ -36,7 +42,14 @@ export default function IncomeCategories() {
     <div className="flex w-full flex-col border-2 border-gray-100 p-6 rounded-4xl gap-4">
       <div className="w-full flex justify-between items-center">
         <div className="font-semibold pl-2 flex flex-col gap-3">
-          <BanknoteArrowUpIcon /> Income Categories
+          <BanknoteArrowUpIcon />
+          <div className="ml-[-16px]">
+            <SortButton
+              label="Income Categories"
+              sort={sort}
+              onToggle={toggleSort}
+            />
+          </div>
         </div>
         <Button
           variant="secondary"
@@ -52,11 +65,11 @@ export default function IncomeCategories() {
       <div className="h-[calc(100vh-330px)] overflow-auto">
         <Table>
           <TableBody>
-            {incomeCategories?.map((category) => (
+            {sortedData?.map((category) => (
               <TableRow key={category}>
                 <TableCell>{category}</TableCell>
               </TableRow>
-            ))}{" "}
+            ))}
             {showAddRow && (
               <TableRow>
                 <TableCell>
@@ -64,7 +77,7 @@ export default function IncomeCategories() {
                     <Input ref={newRef} />
                     <Button onClick={handleSaveClick}>Save</Button>
                     <Button
-                      variant="destructive"
+                      variant="outline"
                       onClick={() => {
                         setShowAddRow(false);
                       }}
