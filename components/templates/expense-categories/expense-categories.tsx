@@ -2,10 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 
-import { BanknoteArrowDownIcon } from "lucide-react";
+import { BanknoteArrowDownIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function ExpenseCategories() {
@@ -34,48 +41,51 @@ export default function ExpenseCategories() {
   }, [newRef.current, showAddRow]);
 
   return (
-    <div className="flex w-full flex-col border-2 border-gray-100 p-3 rounded-sm gap-4">
+    <div className="flex w-full flex-col border-2 border-gray-100 p-6 rounded-4xl gap-4">
       <div className="w-full flex justify-between items-center">
-        <div className="font-semibold pl-2 flex gap-3">
+        <div className="font-semibold pl-2 flex flex-col gap-3">
           <BanknoteArrowDownIcon /> Expense Categories
         </div>
         <Button
+          variant="secondary"
           onClick={() => {
             setShowAddRow(true);
           }}
           hidden={showAddRow}
         >
-          Add
+          <PlusIcon />
+          Add Category
         </Button>
       </div>
-
-      <Table>
-        <TableBody>
-          {expenseCategories?.map((category) => (
-            <TableRow key={category}>
-              <TableCell>{category}</TableCell>
-            </TableRow>
-          ))}
-          {showAddRow && (
-            <TableRow>
-              <TableCell>
-                <div className="w-full flex gap-2">
-                  <Input ref={newRef} />
-                  <Button onClick={handleSaveClick}>Save</Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      setShowAddRow(false);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+      <div className="h-[calc(100vh-330px)] overflow-auto">
+        <Table>
+          <TableBody>
+            {expenseCategories?.map((category) => (
+              <TableRow key={category}>
+                <TableCell>{category}</TableCell>
+              </TableRow>
+            ))}
+            {showAddRow && (
+              <TableRow>
+                <TableCell>
+                  <div className="w-full flex gap-2">
+                    <Input ref={newRef} />
+                    <Button onClick={handleSaveClick}>Save</Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowAddRow(false);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>{" "}
     </div>
   );
 }
