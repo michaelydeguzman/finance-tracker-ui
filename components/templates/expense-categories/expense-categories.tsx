@@ -61,10 +61,10 @@ export default function ExpenseCategories() {
           hidden={showAddRow}
         >
           <PlusIcon />
-          Add Category
+          Add
         </Button>
       </div>
-      <div className="h-[calc(100vh-330px)] overflow-auto">
+      <div className="h-[calc(100vh-340px)] overflow-auto">
         <Table>
           <TableBody>
             {sortedData?.map((category) => (

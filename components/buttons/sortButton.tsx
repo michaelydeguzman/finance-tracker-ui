@@ -23,7 +23,7 @@ export function SortButton({ label, sort, onToggle }: SortButtonProps) {
 
   return (
     <Button
-      variant="ghost"
+      variant={sort === null ? "ghost" : "secondary"}
       size="lg"
       className="flex items-center gap-1"
       onClick={onToggle}
