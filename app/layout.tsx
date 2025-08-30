@@ -38,10 +38,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SidebarProvider>
-            <AppSidebar />
-            <main className="w-full flex flex-col min-h-screen">
+            {/* <AppSidebar /> */}
+            <main className="w-full flex flex-col min-h-screen justify-center items-center max-w-[1680px] mx-auto">
               <Header />
-              <div className="p-6 flex flex-col gap-8 flex-grow">
+
+              <div className="flex flex-col gap-8 flex-grow w-full px-[80px]">
                 {children}
               </div>
             </main>
