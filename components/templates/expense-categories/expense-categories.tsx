@@ -1,6 +1,7 @@
 "use client";
 
 import { SortButton } from "@/components/buttons/sortButton";
+import Card from "@/components/common/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -40,7 +41,7 @@ export default function ExpenseCategories() {
   }, [newRef.current, showAddRow]);
 
   return (
-    <div className="flex w-full flex-col border-2 border-gray-100 p-6 rounded-4xl gap-4">
+    <Card>
       <div className="w-full flex justify-between items-center">
         <div className="font-semibold pl-2 flex flex-col gap-3">
           <BanknoteArrowDownIcon />
@@ -64,7 +65,7 @@ export default function ExpenseCategories() {
           Add
         </Button>
       </div>
-      <div className="h-[calc(100vh-340px)] overflow-auto">
+      <div className="h-[calc(100vh-360px)] overflow-auto">
         <Table>
           <TableBody>
             {sortedData?.map((category) => (
@@ -92,7 +93,7 @@ export default function ExpenseCategories() {
             )}
           </TableBody>
         </Table>
-      </div>{" "}
-    </div>
+      </div>
+    </Card>
   );
 }

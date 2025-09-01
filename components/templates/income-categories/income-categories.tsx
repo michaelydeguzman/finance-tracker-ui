@@ -1,12 +1,13 @@
 "use client";
 
 import { SortButton } from "@/components/buttons/sortButton";
+import Card from "@/components/common/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useIncomeCategories } from "@/hooks/useIncomeCategories";
 import { useSortableData } from "@/hooks/useSortableData";
-import { BanknoteArrowUpIcon, PlusIcon } from "lucide-react";
+import { BanknoteArrowUpIcon, Car, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function IncomeCategories() {
@@ -39,7 +40,7 @@ export default function IncomeCategories() {
   }, [newRef.current, showAddRow]);
 
   return (
-    <div className="flex w-full flex-col border-2 border-gray-100 p-6 rounded-4xl gap-4">
+    <Card>
       <div className="w-full flex justify-between items-center">
         <div className="font-semibold pl-2 flex flex-col gap-3">
           <BanknoteArrowUpIcon />
@@ -62,7 +63,7 @@ export default function IncomeCategories() {
           Add
         </Button>
       </div>
-      <div className="h-[calc(100vh-340px)] overflow-auto">
+      <div className="h-[calc(100vh-360px)] overflow-auto">
         <Table>
           <TableBody>
             {sortedData?.map((category) => (
@@ -91,6 +92,6 @@ export default function IncomeCategories() {
           </TableBody>
         </Table>
       </div>
-    </div>
+    </Card>
   );
 }
