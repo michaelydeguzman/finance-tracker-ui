@@ -42,7 +42,7 @@ export default function RootLayout({
             <main className="w-full flex flex-col min-h-screen justify-center items-center max-w-[1680px] mx-auto">
               <Header />
 
-              <div className="flex flex-col gap-8 flex-grow w-full px-[80px]">
+              <div className="flex flex-col gap-8 flex-grow w-full px-[80px] py-5">
                 {children}
               </div>
             </main>
