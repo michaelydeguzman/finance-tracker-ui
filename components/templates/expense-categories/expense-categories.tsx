@@ -8,29 +8,32 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { useSortableData } from "@/hooks/useSortableData";
 
-import { BanknoteArrowDownIcon, PlusIcon } from "lucide-react";
+import { EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function ExpenseCategories() {
   const newRef = useRef<HTMLInputElement>(null);
+  const editRef = useRef<HTMLInputElement>(null);
+
   const [showAddRow, setShowAddRow] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
 
   const { expenseCategories, addExpenseCategory } = useExpenseCategories();
-
   const { sortedData, sort, toggleSort } = useSortableData(
     expenseCategories,
     (c) => c
   );
 
   const handleSaveClick = () => {
-    if (!newRef.current) {
-      return;
-    }
+    if (!newRef.current) return;
 
-    var input = newRef.current.value;
-
+    const input = newRef.current.value;
     addExpenseCategory(input);
     setShowAddRow(false);
+  };
+
+  const handleEditClick = (category: string) => {
+    setEditingCategory(category);
   };
 
   useEffect(() => {
@@ -38,52 +41,99 @@ export default function ExpenseCategories() {
       newRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       newRef.current?.focus();
     }
-  }, [newRef.current, showAddRow]);
+  }, [showAddRow]);
+
+  useEffect(() => {
+    if (editingCategory && editRef.current) {
+      editRef.current.focus();
+    }
+  }, [editingCategory]);
 
   return (
     <Card>
       <div className="w-full flex justify-between items-center">
         <div className="font-semibold pl-2 flex flex-col gap-3">
-          <BanknoteArrowDownIcon />
           <div className="ml-[-16px]">
             <SortButton
               label="Expense Categories"
               sort={sort}
               onToggle={toggleSort}
+              className="text-md"
             />
           </div>
         </div>
 
         <Button
           variant="secondary"
-          onClick={() => {
-            setShowAddRow(true);
-          }}
+          onClick={() => setShowAddRow(true)}
           hidden={showAddRow}
         >
           <PlusIcon />
           Add
         </Button>
       </div>
+
       <div className="h-[calc(100vh-360px)] overflow-auto">
         <Table>
           <TableBody>
-            {sortedData?.map((category) => (
-              <TableRow key={category}>
-                <TableCell>{category}</TableCell>
-              </TableRow>
-            ))}
+            {sortedData?.map((category) => {
+              const isEditing = editingCategory === category;
+
+              return (
+                <TableRow key={category} className="group">
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        ref={editRef}
+                        defaultValue={category}
+                        className="w-full"
+                      />
+                    ) : (
+                      <div>{category}</div>
+                    )}
+                  </TableCell>
+
+                  <TableCell className="text-right">
+                    {isEditing ? (
+                      <div className="w-full flex gap-2 justify-end">
+                        <Button onClick={handleSaveClick}>Save</Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setEditingCategory(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEditClick(category)}
+                        >
+                          <EditIcon />
+                        </Button>
+                        <Button size="sm" variant="ghost">
+                          <TrashIcon />
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+
             {showAddRow && (
-              <TableRow>
+              <TableRow className="w-full">
                 <TableCell>
-                  <div className="w-full flex gap-2">
-                    <Input ref={newRef} />
+                  <Input ref={newRef} className="w-full" />
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="w-full flex gap-2 justify-end">
                     <Button onClick={handleSaveClick}>Save</Button>
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setShowAddRow(false);
-                      }}
+                      onClick={() => setShowAddRow(false)}
                     >
                       Cancel
                     </Button>

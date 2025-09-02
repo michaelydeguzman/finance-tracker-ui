@@ -7,12 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useIncomeCategories } from "@/hooks/useIncomeCategories";
 import { useSortableData } from "@/hooks/useSortableData";
-import { BanknoteArrowUpIcon, Car, PlusIcon } from "lucide-react";
+import { EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function IncomeCategories() {
   const newRef = useRef<HTMLInputElement>(null);
-
+  const editRef = useRef<HTMLInputElement>(null);
   const [showAddRow, setShowAddRow] = useState(false);
 
   const { incomeCategories, addIncomeCategory } = useIncomeCategories();
@@ -20,6 +20,8 @@ export default function IncomeCategories() {
     incomeCategories,
     (c) => c
   );
+
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
 
   const handleSaveClick = () => {
     if (!newRef.current) {
@@ -39,16 +41,23 @@ export default function IncomeCategories() {
     }
   }, [newRef.current, showAddRow]);
 
+  useEffect(() => {
+    if (editingCategory && editRef.current) {
+      editRef.current.focus();
+    }
+  }, [editingCategory]);
+
   return (
     <Card>
       <div className="w-full flex justify-between items-center">
         <div className="font-semibold pl-2 flex flex-col gap-3">
-          <BanknoteArrowUpIcon />
+          {/* <BanknoteArrowUpIcon /> */}
           <div className="ml-[-16px]">
             <SortButton
               label="Income Categories"
               sort={sort}
               onToggle={toggleSort}
+              className="text-md"
             />
           </div>
         </div>
@@ -66,11 +75,36 @@ export default function IncomeCategories() {
       <div className="h-[calc(100vh-360px)] overflow-auto">
         <Table>
           <TableBody>
-            {sortedData?.map((category) => (
-              <TableRow key={category}>
-                <TableCell>{category}</TableCell>
-              </TableRow>
-            ))}
+            {sortedData?.map((category) => {
+              const isEditing = editingCategory === category;
+
+              return (
+                <TableRow key={category} className="group">
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        ref={editRef}
+                        defaultValue={category}
+                        className="w-full"
+                      />
+                    ) : (
+                      <div>{category}</div>
+                    )}
+                  </TableCell>
+
+                  <TableCell className="text-right">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <Button size="sm" variant="ghost">
+                        <EditIcon />
+                      </Button>
+                      <Button size="sm" variant="ghost">
+                        <TrashIcon />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {showAddRow && (
               <TableRow>
                 <TableCell>

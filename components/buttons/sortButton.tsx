@@ -1,15 +1,22 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
 
 type SortButtonProps = {
   label: string;
   sort: "asc" | "desc" | null;
   onToggle: () => void;
+  className?: string;
 };
 
-export function SortButton({ label, sort, onToggle }: SortButtonProps) {
+export function SortButton({
+  label,
+  sort,
+  onToggle,
+  className,
+}: SortButtonProps) {
   const getSortIcon = () => {
     switch (sort) {
       case "asc":
@@ -25,7 +32,7 @@ export function SortButton({ label, sort, onToggle }: SortButtonProps) {
     <Button
       variant={sort === null ? "ghost" : "secondary"}
       size="lg"
-      className="flex items-center gap-1"
+      className={cn("flex items-center gap-1", className)}
       onClick={onToggle}
     >
       <span>{label}</span>
