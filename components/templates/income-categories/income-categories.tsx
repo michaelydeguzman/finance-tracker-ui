@@ -11,7 +11,6 @@ export default function IncomeCategoryList() {
       label="Income Categories"
       data={incomeCategories}
       onAdd={addIncomeCategory}
-      categoryType="income"
     />
   );
 }

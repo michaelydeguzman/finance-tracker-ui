@@ -10,14 +10,14 @@ import { EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface CategoryListProps {
-  data: string[];
-  categoryType: "expense" | "income";
-  onAdd: (category: string) => void;
   label: string;
+  data: string[];
+  onAdd: (category: string) => void;
+  //   categoryType: "expense" | "income";
 }
 
 export default function CategoryList(props: CategoryListProps) {
-  const { data, categoryType, onAdd, label } = props;
+  const { data, onAdd, label } = props;
 
   const newRef = useRef<HTMLInputElement | null>(null);
   const editRef = useRef<HTMLInputElement | null>(null);

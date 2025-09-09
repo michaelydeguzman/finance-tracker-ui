@@ -11,7 +11,6 @@ export default function ExpenseCategoryList() {
       label="Expense Categories"
       data={expenseCategories}
       onAdd={addExpenseCategory}
-      categoryType="expense"
     />
   );
 }
