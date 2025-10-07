@@ -22,15 +22,15 @@ export const ROUTES = [
     color: "",
   },
   {
-    title: "Households",
-    url: "/households",
-    icon: House,
-    color: "",
-  },
-  {
     title: "Categories",
     url: "/categories",
     icon: Settings,
+    color: "",
+  },
+  {
+    title: "Households",
+    url: "/households",
+    icon: House,
     color: "",
   },
 ] as Route[];

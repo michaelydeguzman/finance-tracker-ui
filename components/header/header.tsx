@@ -52,22 +52,10 @@ export default function Header() {
               </Button>
             );
           })}
-          {/* <Button variant="ghost" className="text-md text-gray-600">
-            Home
-          </Button>
-          <Button variant="ghost" className="text-md">
-            Income
-          </Button>
-          <Button variant="ghost" className="text-md">
-            Expenses
-          </Button>
-          <Button variant="ghost" className="text-md">
-            Configuration
-          </Button> */}
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <DarkModeTrigger />
+        {false && <DarkModeTrigger />}
         <Separator orientation="vertical" />
         <div className="flex items-center gap-2">
           <UserHeader />
