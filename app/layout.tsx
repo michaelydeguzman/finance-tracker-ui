@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
-import Header from "@/components/header/app-header";
+import Header from "@/components/header/header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +37,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SidebarProvider>
-            {/* <AppSidebar /> */}
             <main className="w-full flex flex-col min-h-screen justify-center items-center max-w-[1680px] mx-auto">
               <Header />
 

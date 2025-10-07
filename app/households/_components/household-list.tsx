@@ -9,48 +9,71 @@ import { useSortableData } from "@/hooks/useSortableData";
 import { EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-interface CategoryListProps {
-  label: string;
-  data: string[];
-  onAdd: (category: string) => void;
-  //   categoryType: "expense" | "income";
+// Mock data - replace with actual household data
+const MOCK_HOUSEHOLDS = [
+  "De Guzman Household",
+  "Smith Family",
+  "Johnson Residence",
+];
+
+interface HouseholdListProps {
+  label?: string;
 }
 
-export default function CategoryList(props: CategoryListProps) {
-  const { data, onAdd, label } = props;
+export default function HouseholdList({
+  label = "Households",
+}: HouseholdListProps) {
+  const [households, setHouseholds] = useState<string[]>(MOCK_HOUSEHOLDS);
+  const [showAddRow, setShowAddRow] = useState(false);
+  const [editingHousehold, setEditingHousehold] = useState<string | null>(null);
 
   const newRef = useRef<HTMLInputElement | null>(null);
   const editRef = useRef<HTMLInputElement | null>(null);
 
-  const [showAddRow, setShowAddRow] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<string | null>(null);
-
-  const { sortedData, sort, toggleSort } = useSortableData(data, (c) => c);
+  const { sortedData, sort, toggleSort } = useSortableData(
+    households,
+    (h) => h
+  );
 
   const handleSaveClick = () => {
-    if (!newRef.current) return;
-
-    const input = newRef.current.value;
-    onAdd(input);
-    setShowAddRow(false);
+    if (editingHousehold) {
+      // Handle edit save
+      const newValue = editRef.current?.value?.trim();
+      if (newValue && newValue !== editingHousehold) {
+        setHouseholds((prev) =>
+          prev.map((h) => (h === editingHousehold ? newValue : h))
+        );
+      }
+      setEditingHousehold(null);
+    } else {
+      // Handle new household save
+      const newValue = newRef.current?.value?.trim();
+      if (newValue) {
+        setHouseholds((prev) => [...prev, newValue]);
+        setShowAddRow(false);
+      }
+    }
   };
 
-  const handleEditClick = (category: string) => {
-    setEditingCategory(category);
+  const handleEditClick = (household: string) => {
+    setEditingHousehold(household);
+  };
+
+  const handleDeleteClick = (household: string) => {
+    setHouseholds((prev) => prev.filter((h) => h !== household));
   };
 
   useEffect(() => {
     if (showAddRow && newRef.current) {
-      newRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      newRef.current?.focus();
+      newRef.current.focus();
     }
   }, [showAddRow]);
 
   useEffect(() => {
-    if (editingCategory && editRef.current) {
+    if (editingHousehold && editRef.current) {
       editRef.current.focus();
     }
-  }, [editingCategory]);
+  }, [editingHousehold]);
 
   return (
     <Card>
@@ -79,20 +102,27 @@ export default function CategoryList(props: CategoryListProps) {
       <div className="h-[calc(100vh-360px)] overflow-auto">
         <Table>
           <TableBody>
-            {sortedData?.map((category) => {
-              const isEditing = editingCategory === category;
+            {sortedData?.map((household) => {
+              const isEditing = editingHousehold === household;
 
               return (
-                <TableRow key={category} className="group">
+                <TableRow key={household} className="group">
                   <TableCell>
                     {isEditing ? (
                       <Input
                         ref={editRef}
-                        defaultValue={category}
+                        defaultValue={household}
                         className="w-full"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleSaveClick();
+                          } else if (e.key === "Escape") {
+                            setEditingHousehold(null);
+                          }
+                        }}
                       />
                     ) : (
-                      <div>{category}</div>
+                      <div>{household}</div>
                     )}
                   </TableCell>
 
@@ -102,7 +132,7 @@ export default function CategoryList(props: CategoryListProps) {
                         <Button onClick={handleSaveClick}>Save</Button>
                         <Button
                           variant="outline"
-                          onClick={() => setEditingCategory(null)}
+                          onClick={() => setEditingHousehold(null)}
                         >
                           Cancel
                         </Button>
@@ -112,11 +142,15 @@ export default function CategoryList(props: CategoryListProps) {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleEditClick(category)}
+                          onClick={() => handleEditClick(household)}
                         >
                           <EditIcon />
                         </Button>
-                        <Button size="sm" variant="ghost">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteClick(household)}
+                        >
                           <TrashIcon />
                         </Button>
                       </div>
@@ -129,7 +163,17 @@ export default function CategoryList(props: CategoryListProps) {
             {showAddRow && (
               <TableRow className="w-full">
                 <TableCell>
-                  <Input ref={newRef} className="w-full" />
+                  <Input
+                    ref={newRef}
+                    className="w-full"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSaveClick();
+                      } else if (e.key === "Escape") {
+                        setShowAddRow(false);
+                      }
+                    }}
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="w-full flex gap-2 justify-end">

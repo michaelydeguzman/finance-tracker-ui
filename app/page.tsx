@@ -1,5 +1,5 @@
 import PageTitle from "@/components/common/page-title";
-import Dashboard from "@/components/dashboard/app-dashboard";
+import Dashboard from "@/components/dashboard/dashboard";
 
 export default function Home() {
   return (

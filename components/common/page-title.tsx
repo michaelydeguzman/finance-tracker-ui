@@ -1,8 +1,9 @@
+import * as React from "react";
 interface PageTitleProps {
   title: string;
   subtitle?: string;
 }
-export default function PageTitle(props: PageTitleProps): React.ReactNode {
+export default function PageTitle(props: PageTitleProps): React.ReactElement {
   const { title, subtitle } = props;
   return (
     <div className="flex flex-col">
