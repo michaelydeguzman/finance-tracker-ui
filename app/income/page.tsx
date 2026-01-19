@@ -2,6 +2,7 @@ import PageTitle from "@/components/common/page-title";
 import PageWithSidebar from "@/components/layout/page-with-sidebar";
 import StickyRightSidebar from "@/components/common/sticky-right-sidebar";
 import Card from "@/components/common/card";
+import { ReceiptIcon } from "lucide-react";
 
 export default function Income() {
   // Sample sidebar content for testing
@@ -53,18 +54,27 @@ export default function Income() {
         <PageTitle title="Income" subtitle="De Guzman Household" />
 
         <div className="space-y-4">
-          {/* Main content */}
-          <div className="space-y-4">
-            {Array.from({ length: 20 }, (_, i) => (
-              <div key={i} className="p-4 border border-border rounded-lg">
-                <h4 className="font-medium">Income Entry #{i + 1}</h4>
-                <p className="text-sm text-muted-foreground">
-                  This is a sample income entry to test the scrolling behavior
-                  of the sticky sidebar.
-                </p>
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="flex flex-col gap-2">
+              <div className="p-4 rounded-lg flex items-center gap-4">
+                <div>
+                  <ReceiptIcon />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium">Income Entry #{i + 1}</h4>
+
+                  <p className="text-sm text-muted-foreground">
+                    This is a sample income entry to test the scrolling behavior
+                    of the sticky sidebar.
+                  </p>
+                </div>
+                <div>
+                  <span className="font-medium">$1,200 CAD</span>
+                </div>
               </div>
-            ))}
-          </div>
+              <div className="border-b border-border"></div>
+            </div>
+          ))}
         </div>
       </div>
     </PageWithSidebar>

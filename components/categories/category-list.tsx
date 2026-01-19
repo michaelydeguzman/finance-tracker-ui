@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useSortableData } from "@/hooks/useSortableData";
 import { EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Category } from "../category.model";
+import { Category } from "@/app/categories/_types/category.model";
 
 interface CategoryListProps {
   label: string;

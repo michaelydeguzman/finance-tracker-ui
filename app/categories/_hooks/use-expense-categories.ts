@@ -1,14 +1,13 @@
 "use client";
-import { Category, CategoryTypes } from "@/components/templates/category.model";
-import { Constants } from "@/constants";
-
+import { Category, CategoryTypes } from "../_types/category.model";
+import { CategoryConstants } from "../_data/category-constants";
 import { useEffect, useState } from "react";
 
 export function useExpenseCategories() {
   const [expenseCategories, setExpenseCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    setExpenseCategories(Constants.EXPENSE_CATEGORIES);
+    setExpenseCategories(CategoryConstants.EXPENSE_CATEGORIES);
   }, []);
 
   const addExpenseCategory = (category: string): void => {

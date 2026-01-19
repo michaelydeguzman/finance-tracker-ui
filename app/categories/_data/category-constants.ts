@@ -1,6 +1,6 @@
-import { Category, CategoryTypes } from "./components/templates/category.model";
+import { Category, CategoryTypes } from "../_types/category.model";
 
-const INCOME_CATEGORIES: Category[] = [
+export const INCOME_CATEGORIES: Category[] = [
   {
     name: "Salary",
     categoryType: CategoryTypes.INCOME,
@@ -101,7 +101,7 @@ const INCOME_CATEGORIES: Category[] = [
   },
 ];
 
-const EXPENSE_CATEGORIES: Category[] = [
+export const EXPENSE_CATEGORIES: Category[] = [
   {
     name: "Car maintenance",
     categoryType: CategoryTypes.EXPENSE,
@@ -237,7 +237,7 @@ const EXPENSE_CATEGORIES: Category[] = [
   },
 ];
 
-export const Constants = {
+export const CategoryConstants = {
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
 };
