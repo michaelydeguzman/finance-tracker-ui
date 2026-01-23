@@ -4,11 +4,9 @@ import { Constants } from "@/constants";
 import { useEffect, useState } from "react";
 
 export function useIncomeCategories() {
-  const [incomeCategories, setIncomeCategories] = useState<Category[]>([]);
-
-  useEffect(() => {
-    setIncomeCategories(Constants.INCOME_CATEGORIES);
-  }, []);
+  const [incomeCategories, setIncomeCategories] = useState<Category[]>(
+    Constants.INCOME_CATEGORIES ?? [],
+  );
 
   const addIncomeCategory = (category: string): void => {
     setIncomeCategories((prev: Category[]) => {

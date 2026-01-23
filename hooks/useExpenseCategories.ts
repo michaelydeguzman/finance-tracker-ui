@@ -5,11 +5,9 @@ import { Constants } from "@/constants";
 import { useEffect, useState } from "react";
 
 export function useExpenseCategories() {
-  const [expenseCategories, setExpenseCategories] = useState<Category[]>([]);
-
-  useEffect(() => {
-    setExpenseCategories(Constants.EXPENSE_CATEGORIES);
-  }, []);
+  const [expenseCategories, setExpenseCategories] = useState<Category[]>(
+    Constants.EXPENSE_CATEGORIES ?? [],
+  );
 
   const addExpenseCategory = (category: string): void => {
     setExpenseCategories((prev) => {
