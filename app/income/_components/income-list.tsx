@@ -1,4 +1,4 @@
-import { ReceiptIcon } from "lucide-react";
+import { ReceiptIcon, WalletIcon } from "lucide-react";
 import Card from "@/components/common/card";
 import type { IncomeEntry } from "../_types/income.model";
 
@@ -20,10 +20,10 @@ export function IncomeList({ entries }: IncomeListProps) {
   return (
     <div className="space-y-4">
       {entries.map((entry) => (
-        <div key={entry.id} className="flex flex-col gap-2">
-          <div className="p-4 rounded-lg flex items-center gap-4 border border-border">
+        <div key={entry.id} className="flex flex-col">
+          <div className="p-4 rounded-lg flex items-center gap-4 hover:bg-gray-100 ">
             <div className="rounded-full bg-primary/10 p-3 text-primary">
-              <ReceiptIcon className="size-5" />
+              <WalletIcon className="size-5" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
@@ -49,7 +49,7 @@ export function IncomeList({ entries }: IncomeListProps) {
               </span>
             </div>
           </div>
-          <div className="border-b border-border" />
+          <div className="pt-4 border-b border-border" />
         </div>
       ))}
     </div>
