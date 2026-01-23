@@ -14,10 +14,11 @@ interface CategoryListProps {
   label: string;
   data: Category[];
   onAdd: (category: string) => void;
+  pending?: boolean;
 }
 
 export default function CategoryList(props: CategoryListProps) {
-  const { data, onAdd, label } = props;
+  const { data, onAdd, label, pending = false } = props;
 
   const newRef = useRef<HTMLInputElement | null>(null);
   const editRef = useRef<HTMLInputElement | null>(null);
@@ -28,7 +29,7 @@ export default function CategoryList(props: CategoryListProps) {
   const { sortedData, sort, toggleSort } = useSortableData(data, (c) => c.name);
 
   const handleSaveClick = () => {
-    if (!newRef.current) return;
+    if (!newRef.current || pending) return;
 
     const input = newRef.current.value;
     onAdd(input);
@@ -70,6 +71,7 @@ export default function CategoryList(props: CategoryListProps) {
           variant="secondary"
           onClick={() => setShowAddRow(true)}
           hidden={showAddRow}
+          disabled={pending}
         >
           <PlusIcon />
           Add
@@ -77,7 +79,7 @@ export default function CategoryList(props: CategoryListProps) {
       </div>
 
       <div className="h-[calc(100vh-360px)] overflow-auto">
-        <Table>
+        <Table aria-busy={pending}>
           <TableBody>
             {sortedData?.map((category) => {
               const isEditing = editingCategory === category.id;
@@ -92,7 +94,9 @@ export default function CategoryList(props: CategoryListProps) {
                   <TableCell className="text-right">
                     {isEditing ? (
                       <div className="w-full flex gap-2 justify-end">
-                        <Button onClick={handleSaveClick}>Save</Button>
+                        <Button onClick={handleSaveClick} disabled={pending}>
+                          {pending ? "Saving" : "Save"}
+                        </Button>
                         <Button
                           variant="outline"
                           onClick={() => setEditingCategory(null)}
@@ -106,10 +110,11 @@ export default function CategoryList(props: CategoryListProps) {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleEditClick(category)}
+                          disabled={pending}
                         >
                           <EditIcon />
                         </Button>
-                        <Button size="sm" variant="ghost">
+                        <Button size="sm" variant="ghost" disabled={pending}>
                           <TrashIcon />
                         </Button>
                       </div>
@@ -126,7 +131,9 @@ export default function CategoryList(props: CategoryListProps) {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="w-full flex gap-2 justify-end">
-                    <Button onClick={handleSaveClick}>Save</Button>
+                    <Button onClick={handleSaveClick} disabled={pending}>
+                      {pending ? "Saving" : "Save"}
+                    </Button>
                     <Button
                       variant="outline"
                       onClick={() => setShowAddRow(false)}
