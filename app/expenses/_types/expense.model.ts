@@ -1,5 +1,3 @@
-export type ExpenseStatus = "posted" | "pending" | "upcoming";
-
 export interface ExpenseEntry {
   id: string;
   title: string;
@@ -8,8 +6,6 @@ export interface ExpenseEntry {
   currency: string;
   category: string;
   date: string;
-  paymentMethod: string;
-  status: ExpenseStatus;
 }
 
 export interface ExpenseSummaryItem {

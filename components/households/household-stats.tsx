@@ -38,7 +38,7 @@ export default function HouseholdStats({ households }: HouseholdStatsProps) {
             <CardTitle className="text-sm font-medium">Total Income</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               ${totalIncome.toLocaleString()}
             </div>
           </CardContent>
@@ -51,7 +51,7 @@ export default function HouseholdStats({ households }: HouseholdStatsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-destructive">
               ${totalExpenses.toLocaleString()}
             </div>
           </CardContent>
@@ -64,7 +64,7 @@ export default function HouseholdStats({ households }: HouseholdStatsProps) {
           <CardContent>
             <div
               className={`text-2xl font-bold ${
-                totalNet >= 0 ? "text-green-600" : "text-red-600"
+                totalNet >= 0 ? "text-success" : "text-destructive"
               }`}
             >
               ${Math.abs(totalNet).toLocaleString()}
@@ -91,8 +91,12 @@ export default function HouseholdStats({ households }: HouseholdStatsProps) {
                     name,
                   ]}
                 />
-                <Bar dataKey="income" fill="#22c55e" name="Income" />
-                <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
+                <Bar dataKey="income" fill="var(--success)" name="Income" />
+                <Bar
+                  dataKey="expenses"
+                  fill="var(--destructive)"
+                  name="Expenses"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

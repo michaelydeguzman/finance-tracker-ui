@@ -14,8 +14,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Groceries",
     date: new Date("2026-01-05T08:15:00-05:00").toISOString(),
-    paymentMethod: "RBC Visa",
-    status: "posted",
   },
   {
     id: "expense-2026-01-05-1230",
@@ -25,8 +23,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Transportation",
     date: new Date("2026-01-05T12:30:00-05:00").toISOString(),
-    paymentMethod: "Amex Gold",
-    status: "posted",
   },
   {
     id: "expense-2026-01-05-1910",
@@ -36,8 +32,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Dining",
     date: new Date("2026-01-05T19:10:00-05:00").toISOString(),
-    paymentMethod: "Scotiabank Debit",
-    status: "posted",
   },
   {
     id: "expense-2026-01-06-0730",
@@ -47,8 +41,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Transportation",
     date: new Date("2026-01-06T07:30:00-05:00").toISOString(),
-    paymentMethod: "Pre-authorized",
-    status: "posted",
   },
   {
     id: "expense-2026-01-06-1015",
@@ -58,8 +50,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Childcare",
     date: new Date("2026-01-06T10:15:00-05:00").toISOString(),
-    paymentMethod: "RBC Visa",
-    status: "posted",
   },
   {
     id: "expense-2026-01-06-1545",
@@ -69,8 +59,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Health",
     date: new Date("2026-01-06T15:45:00-05:00").toISOString(),
-    paymentMethod: "Apple Pay",
-    status: "pending",
   },
   {
     id: "expense-2026-01-07-0900",
@@ -80,8 +68,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Housing",
     date: new Date("2026-01-07T09:00:00-05:00").toISOString(),
-    paymentMethod: "Auto-withdrawal",
-    status: "posted",
   },
   {
     id: "expense-2026-01-07-1100",
@@ -91,8 +77,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Transportation",
     date: new Date("2026-01-07T11:00:00-05:00").toISOString(),
-    paymentMethod: "CIBC Mastercard",
-    status: "posted",
   },
   {
     id: "expense-2026-01-07-2000",
@@ -102,8 +86,6 @@ export const expenseEntries: ExpenseEntry[] = [
     currency: "CAD",
     category: "Entertainment",
     date: new Date("2026-01-07T20:00:00-05:00").toISOString(),
-    paymentMethod: "Amex Gold",
-    status: "posted",
   },
 ];
 

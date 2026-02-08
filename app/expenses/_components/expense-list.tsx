@@ -11,12 +11,6 @@ interface ExpenseListProps {
   pageSize?: number;
 }
 
-const STATUS_STYLES: Record<ExpenseEntry["status"], string> = {
-  posted: "bg-emerald-50 text-emerald-700",
-  pending: "bg-amber-50 text-amber-700",
-  upcoming: "bg-blue-50 text-blue-700",
-};
-
 export function ExpenseList({ entries, pageSize = 6 }: ExpenseListProps) {
   const [visibleCount, setVisibleCount] = useState(pageSize);
 
@@ -111,13 +105,6 @@ export function ExpenseList({ entries, pageSize = 6 }: ExpenseListProps) {
                       </p>
                       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                         <span>Category: {entry.category}</span>
-                        <span>Paid with {entry.paymentMethod}</span>
-                        <span
-                          className={`px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[entry.status]}`}
-                        >
-                          {entry.status.charAt(0).toUpperCase() +
-                            entry.status.slice(1)}
-                        </span>
                       </div>
                     </div>
                   </div>
