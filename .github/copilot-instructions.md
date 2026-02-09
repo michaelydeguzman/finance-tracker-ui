@@ -1,5 +1,12 @@
 # Project general coding guidelines
 
+## AI Assistance
+
+- Always use Context7 MCP when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
+- Ask user for clarification if the request is ambiguous or lacks necessary details before providing an answer.
+- Do step by step changes and ask user to verify each step before proceeding to the next one, especially for complex code modifications or when refactoring existing code.
+- Provide explanations for any code changes or design decisions I recommend, so the user can understand the rationale behind them and learn from the process.
+
 ## Naming Conventions
 
 - Use PascalCase for component names, interfaces, and type aliases

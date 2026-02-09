@@ -10,22 +10,23 @@ const simulateNetworkLatency = (delay = 400) =>
   new Promise((resolve) => setTimeout(resolve, delay));
 
 export function useExpenseCategories() {
-  const { data, pending, addItem } = useOptimisticList<Category>(
-    INITIAL_EXPENSE_CATEGORIES,
-    async (category) => {
-      await simulateNetworkLatency();
-      return {
-        ...category,
-        id: crypto.randomUUID(),
-      } satisfies Category;
-    },
-    async () => {
-      throw new Error("Updating expense categories is not implemented yet.");
-    },
-    async () => {
-      throw new Error("Deleting expense categories is not implemented yet.");
-    },
-  );
+  const { data, pending, addItem, updateItem, deleteItem } =
+    useOptimisticList<Category>(
+      INITIAL_EXPENSE_CATEGORIES,
+      async (category) => {
+        await simulateNetworkLatency();
+        return {
+          ...category,
+          id: crypto.randomUUID(),
+        } satisfies Category;
+      },
+      async () => {
+        throw new Error("Updating expense categories is not implemented yet.");
+      },
+      async () => {
+        throw new Error("Deleting expense categories is not implemented yet.");
+      },
+    );
 
   const addExpenseCategory = (category: string): void => {
     const trimmedCategory = category.trim();
@@ -50,9 +51,40 @@ export function useExpenseCategories() {
     });
   };
 
+  const updateExpenseCategory = (id: string, category: string): void => {
+    const trimmedCategory = category.trim();
+
+    if (!trimmedCategory) {
+      alert("Category name cannot be empty.");
+      return;
+    }
+
+    const lower = trimmedCategory.toLowerCase();
+
+    if (data.some((c) => c.id !== id && c.name.toLowerCase() === lower)) {
+      alert(`Category "${trimmedCategory}" already exists!`);
+      return;
+    }
+
+    updateItem(id, { name: trimmedCategory });
+  };
+
+  const deleteExpenseCategory = (id: string): void => {
+    const category = data.find((item) => item.id === id);
+    const label = category?.name ?? "this category";
+
+    if (!confirm(`Delete ${label}? This cannot be undone.`)) {
+      return;
+    }
+
+    deleteItem(id);
+  };
+
   return {
     expenseCategories: data,
     addExpenseCategory,
+    updateExpenseCategory,
+    deleteExpenseCategory,
     pending,
   };
 }
