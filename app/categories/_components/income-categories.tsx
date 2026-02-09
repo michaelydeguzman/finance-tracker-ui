@@ -1,7 +1,7 @@
 "use client";
 
 import { useIncomeCategories } from "../_hooks/use-income-categories";
-import CategoryList from "@/components/categories/category-list";
+import CategoryList from "@/app/categories/_components/category-list";
 
 export default function IncomeCategoryList() {
   const {

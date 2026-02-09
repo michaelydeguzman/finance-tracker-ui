@@ -1,25 +1,22 @@
 "use client";
 
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
+import { createCategory } from "@/lib/api/categories";
 import { Category, CategoryTypes } from "../_types/category.model";
 import { CategoryConstants } from "../_data/category-constants";
 
 const INITIAL_INCOME_CATEGORIES = CategoryConstants.INCOME_CATEGORIES;
 
-const simulateNetworkLatency = (delay = 400) =>
-  new Promise((resolve) => setTimeout(resolve, delay));
-
 export function useIncomeCategories() {
   const { data, pending, addItem, updateItem, deleteItem } =
     useOptimisticList<Category>(
       INITIAL_INCOME_CATEGORIES,
-      async (category) => {
-        await simulateNetworkLatency();
-        return {
-          ...category,
-          id: crypto.randomUUID(),
-        } satisfies Category;
-      },
+      (category) =>
+        createCategory({
+          name: category.name,
+          categoryType: category.categoryType,
+          isActive: category.isActive,
+        }),
       async () => {
         throw new Error("Updating income categories is not implemented yet.");
       },
