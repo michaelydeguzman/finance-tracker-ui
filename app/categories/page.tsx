@@ -1,4 +1,4 @@
-import PageTitle from "@/components/common/page-title";
+import PageTitle from "@/components/shared/page-title";
 import ExpenseCategoryList from "./_components/expense-categories";
 import IncomeCategoryList from "./_components/income-categories";
 

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { WalletIcon } from "lucide-react";
-import Card from "@/components/common/card";
+import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import type { IncomeEntry } from "../_types/income.model";
 

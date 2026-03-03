@@ -1,4 +1,7 @@
-import { Category, CategoryTypes } from "./components/templates/category.model";
+import {
+  Category,
+  CategoryTypes,
+} from "./app/categories/_types/category.model";
 
 const INCOME_CATEGORIES: Category[] = [
   {

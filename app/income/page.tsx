@@ -1,4 +1,4 @@
-import PageTitle from "@/components/common/page-title";
+import PageTitle from "@/components/shared/page-title";
 import PageWithSidebar from "@/components/layout/page-with-sidebar";
 import { IncomeList } from "./_components/income-list";
 import { IncomeSidebar } from "./_components/income-sidebar";

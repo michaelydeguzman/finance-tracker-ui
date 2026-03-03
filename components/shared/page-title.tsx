@@ -1,8 +1,10 @@
 import * as React from "react";
+
 interface PageTitleProps {
   title: string;
   subtitle?: string;
 }
+
 export default function PageTitle(props: PageTitleProps): React.ReactElement {
   const { title, subtitle } = props;
   return (

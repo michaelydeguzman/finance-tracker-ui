@@ -1,7 +1,7 @@
 "use client";
 
-import { SortButton } from "@/components/buttons/sort-button";
-import Card from "@/components/common/card";
+import { SortButton } from "@/components/shared/sort-button";
+import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";

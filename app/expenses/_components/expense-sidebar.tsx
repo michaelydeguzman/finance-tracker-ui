@@ -1,5 +1,5 @@
-import Card from "@/components/common/card";
-import StickyRightSidebar from "@/components/common/sticky-right-sidebar";
+import Card from "@/components/shared/card";
+import StickyRightSidebar from "@/components/layout/sticky-right-sidebar";
 import { ArrowDownRightIcon, ArrowUpRightIcon, MinusIcon } from "lucide-react";
 import type {
   ExpenseQuickAction,
@@ -28,7 +28,7 @@ export function ExpenseSidebar({
 }: ExpenseSidebarProps) {
   return (
     <StickyRightSidebar>
-      <div className="space-y-4 mt-20">
+      <div className="space-y-4">
         <Card>
           <h3 className="font-semibold text-lg">Spending Summary</h3>
           <div className="space-y-3 mt-4">

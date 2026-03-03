@@ -22,18 +22,10 @@ export default function StickyRightSidebar({
   return (
     <aside
       className={cn(
-        // Base positioning and sizing
         "sticky top-24 h-fit max-h-[calc(100vh-6rem)]",
-
-        // Width based on prop
         widthClasses[width],
-
-        // Styling
-
-        // Responsive behavior
         "hidden lg:block",
-
-        className
+        className,
       )}
     >
       {children}

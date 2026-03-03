@@ -1,4 +1,4 @@
-import PageTitle from "@/components/common/page-title";
+import PageTitle from "@/components/shared/page-title";
 import PageWithSidebar from "@/components/layout/page-with-sidebar";
 import { ExpenseList } from "./_components/expense-list";
 import { ExpenseSidebar } from "./_components/expense-sidebar";

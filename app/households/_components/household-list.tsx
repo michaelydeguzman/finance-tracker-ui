@@ -1,7 +1,7 @@
 "use client";
 
-import { SortButton } from "@/components/buttons/sort-button";
-import Card from "@/components/common/card";
+import { SortButton } from "@/components/shared/sort-button";
+import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -32,7 +32,7 @@ export default function HouseholdList({
 
   const { sortedData, sort, toggleSort } = useSortableData(
     households,
-    (h) => h
+    (h) => h,
   );
 
   const handleSaveClick = () => {
@@ -41,7 +41,7 @@ export default function HouseholdList({
       const newValue = editRef.current?.value?.trim();
       if (newValue && newValue !== editingHousehold) {
         setHouseholds((prev) =>
-          prev.map((h) => (h === editingHousehold ? newValue : h))
+          prev.map((h) => (h === editingHousehold ? newValue : h)),
         );
       }
       setEditingHousehold(null);
