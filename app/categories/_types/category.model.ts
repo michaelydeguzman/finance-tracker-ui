@@ -1,12 +1,9 @@
+import type { CategoryType } from "@/types/shared/enums";
+
 export interface Category {
   id: string;
   name: string;
-  categoryType: CategoryTypes;
+  categoryType: CategoryType;
   createdAt: Date;
   isActive: boolean;
-}
-
-export enum CategoryTypes {
-  INCOME = "income",
-  EXPENSE = "expense",
 }

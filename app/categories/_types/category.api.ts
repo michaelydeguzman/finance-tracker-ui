@@ -1,15 +1,14 @@
-import { CategoryTypes } from "./category.model";
+import type { CategoryType } from "@/types/shared/enums";
 
 export interface CreateCategoryRequest {
   name: string;
-  categoryType: CategoryTypes;
-  isActive?: boolean;
+  categoryType: CategoryType;
 }
 
-export interface CategoryApiResponse {
+export interface CategoryResponse {
   id: string;
   name: string;
-  categoryType: CategoryTypes;
+  categoryType: CategoryType;
   createdAt: string;
   isActive: boolean;
 }

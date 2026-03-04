@@ -2,7 +2,8 @@
 
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
 import { createCategory } from "@/lib/api/categories";
-import { Category, CategoryTypes } from "../_types/category.model";
+import { CategoryType } from "@/types/shared/enums";
+import type { Category } from "../_types/category.model";
 import { CategoryConstants } from "../_data/category-constants";
 
 const INITIAL_EXPENSE_CATEGORIES = CategoryConstants.EXPENSE_CATEGORIES;
@@ -15,7 +16,6 @@ export function useExpenseCategories() {
         createCategory({
           name: category.name,
           categoryType: category.categoryType,
-          isActive: category.isActive,
         }),
       async () => {
         throw new Error("Updating expense categories is not implemented yet.");
@@ -42,7 +42,7 @@ export function useExpenseCategories() {
 
     addItem({
       name: trimmedCategory,
-      categoryType: CategoryTypes.EXPENSE,
+      categoryType: CategoryType.Expense,
       createdAt: new Date(),
       isActive: true,
     });
