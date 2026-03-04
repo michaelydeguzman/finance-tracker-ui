@@ -26,15 +26,25 @@
 
 ## File Organization
 
-- Group related files into folders (e.g., components, hooks, types, data)
+- Follow Next.js App Router conventions: co-locate feature-specific code under `app/<route>/`
+  - `_components/` — route-specific components
+  - `_hooks/` — route-specific hooks
+  - `_types/` — route-specific type definitions
+  - `_data/` — route-specific constants and mock data
+- Place shared/reusable components in `components/` using these sub-folders:
+  - `shared/` — generic, reusable UI components used across multiple features (e.g., `Card`, `PageTitle`, `SortButton`, `AsyncBoundary`)
+  - `layout/` — layout primitives used to structure pages (e.g., `PageWithSidebar`, `StickyRightSidebar`)
+  - `header/` — app header components
+  - `sidebar/` — app sidebar components
+  - `dashboard/` — dashboard-specific components
+  - `ui/` — shadcn/ui auto-generated primitives (do not manually edit)
+- Do NOT create a `common/` or `buttons/` folder; use `shared/` instead
 - Keep files focused on a single responsibility
-- Use index.ts files for barrel exports where appropriate
+- Use `index.ts` files for barrel exports where appropriate
 - Maintain a consistent file structure across the project
-- Separate reusable components into a shared components folder
-- Organize hooks into a dedicated hooks folder
-- Store type definitions in a types folder
-- Keep constant values in a constants or data folder
-- Use clear and descriptive names for folders and files
+- Organize hooks into a dedicated `hooks/` folder (for app-wide hooks) or `_hooks/` (for feature-specific hooks)
+- Store type definitions in `types/` (app-wide) or `_types/` (feature-specific)
+- Keep constant values in `_data/` folders co-located with their feature
 
 ## Import Statements
 

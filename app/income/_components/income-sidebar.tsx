@@ -1,5 +1,5 @@
-import Card from "@/components/common/card";
-import StickyRightSidebar from "@/components/common/sticky-right-sidebar";
+import Card from "@/components/shared/card";
+import StickyRightSidebar from "@/components/layout/sticky-right-sidebar";
 import type {
   IncomeSummaryItem,
   QuickActionItem,
@@ -13,7 +13,7 @@ interface IncomeSidebarProps {
 export function IncomeSidebar({ summary, actions }: IncomeSidebarProps) {
   return (
     <StickyRightSidebar>
-      <div className="space-y-4 mt-20">
+      <div className="space-y-4">
         <Card>
           <h3 className="font-semibold text-lg">Income Summary</h3>
 
