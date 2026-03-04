@@ -1,32 +1,49 @@
 /**
- * API configuration and base URL resolver.
+ * API configuration.
  *
- * - Server-side (actions / route handlers): uses `API_URL` env var.
- * - Client-side (browser fetches): uses relative paths via endpoint constants.
+ * - `apiFetch<T>()` — generic client-side fetch wrapper that unwraps
+ *   the standard `ApiResponse<T>` envelope returned by our Next.js route handlers.
  */
 
-/** Base URL for server-side external API calls. */
-export const API_BASE_URL = process.env.API_URL ?? "";
-
-/**
- * Joins a base URL with a path, preventing double slashes.
- *
- * @param base - The base URL (e.g. "https://api.example.com").
- * @param path - The path segment (e.g. "/api/v1/categories").
- * @returns The joined URL string.
- */
-export function buildUrl(base: string, path: string): string {
-  const trimmedBase = base.replace(/\/+$/, "");
-  const trimmedPath = path.replace(/^\/+/, "/");
-  return `${trimmedBase}${trimmedPath}`;
-}
+import type { ApiResponse } from "@/types/shared/api-response";
 
 /**
- * Resolves an endpoint path against the server-side base URL.
+ * Generic fetch wrapper that handles the standard ApiResponse envelope.
  *
- * @param path - The endpoint path (e.g. "/api/v1/categories").
- * @returns Fully qualified URL for server-side calls.
+ * 1. Sends the request.
+ * 2. Asserts `response.ok`.
+ * 3. Unwraps `ApiResponse<T>`, throwing on `success === false`.
+ * 4. Returns the typed `data` payload.
+ *
+ * @param url - The endpoint URL.
+ * @param options - Standard `RequestInit` options.
+ * @returns The unwrapped `data` of type `T`.
  */
-export function serverUrl(path: string): string {
-  return buildUrl(API_BASE_URL, path);
+export async function apiFetch<T>(
+  url: string,
+  options?: RequestInit,
+): Promise<T> {
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    const fallback = `Request failed (${response.status})`;
+    let message = fallback;
+
+    try {
+      const body = (await response.json()) as { error?: string };
+      message = body?.error ?? fallback;
+    } catch {
+      /* body wasn't JSON — keep fallback */
+    }
+
+    throw new Error(message);
+  }
+
+  const json = (await response.json()) as ApiResponse<T>;
+
+  if (!json.success) {
+    throw new Error(json.message ?? "An unknown error occurred.");
+  }
+
+  return json.data as T;
 }

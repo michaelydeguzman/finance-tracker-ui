@@ -91,6 +91,7 @@ export function useOptimisticList<T extends { id: string | number }>(
   return {
     data: optimisticData,
     pending: isPending,
+    setData: setItems,
     addItem,
     updateItem,
     deleteItem,

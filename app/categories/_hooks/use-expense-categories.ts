@@ -1,17 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
-import { createCategory } from "@/lib/api/categories";
+import { createCategory, getCategoriesByType } from "@/lib/api/categories";
 import { CategoryType } from "@/types/shared/enums";
 import type { Category } from "../_types/category.model";
-import { CategoryConstants } from "../_data/category-constants";
-
-const INITIAL_EXPENSE_CATEGORIES = CategoryConstants.EXPENSE_CATEGORIES;
 
 export function useExpenseCategories() {
-  const { data, pending, addItem, updateItem, deleteItem } =
+  const { data, pending, setData, addItem, updateItem, deleteItem } =
     useOptimisticList<Category>(
-      INITIAL_EXPENSE_CATEGORIES,
+      [],
       (category) =>
         createCategory({
           name: category.name,
@@ -24,6 +22,14 @@ export function useExpenseCategories() {
         throw new Error("Deleting expense categories is not implemented yet.");
       },
     );
+
+  useEffect(() => {
+    getCategoriesByType(CategoryType.Expense)
+      .then(setData)
+      .catch((error) =>
+        console.error("Failed to fetch expense categories:", error),
+      );
+  }, [setData]);
 
   const addExpenseCategory = (category: string): void => {
     const trimmedCategory = category.trim();

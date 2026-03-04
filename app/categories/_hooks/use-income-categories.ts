@@ -1,17 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
-import { createCategory } from "@/lib/api/categories";
+import { createCategory, getCategoriesByType } from "@/lib/api/categories";
 import { CategoryType } from "@/types/shared/enums";
 import type { Category } from "../_types/category.model";
-import { CategoryConstants } from "../_data/category-constants";
-
-const INITIAL_INCOME_CATEGORIES = CategoryConstants.INCOME_CATEGORIES;
 
 export function useIncomeCategories() {
-  const { data, pending, addItem, updateItem, deleteItem } =
+  const { data, pending, setData, addItem, updateItem, deleteItem } =
     useOptimisticList<Category>(
-      INITIAL_INCOME_CATEGORIES,
+      [],
       (category) =>
         createCategory({
           name: category.name,
@@ -24,6 +22,14 @@ export function useIncomeCategories() {
         throw new Error("Deleting income categories is not implemented yet.");
       },
     );
+
+  useEffect(() => {
+    getCategoriesByType(CategoryType.Income)
+      .then(setData)
+      .catch((error) =>
+        console.error("Failed to fetch income categories:", error),
+      );
+  }, [setData]);
 
   const addIncomeCategory = (category: string): void => {
     const trimmedCategory = category.trim();
