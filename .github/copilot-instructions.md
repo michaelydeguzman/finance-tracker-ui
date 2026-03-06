@@ -23,6 +23,10 @@
 ## Styling
 
 - Use Tailwind CSS for styling components
+- Follow a consistent styling approach across the project
+- Avoid creating class names with underscores or hyphens; instead, use Tailwind utility classes directly in the JSX
+- Do not create custom CSS classes unless necessary; prefer using Tailwind's utility-first approach
+- Use shadcn/ui components where appropriate to maintain a consistent design system
 
 ## File Organization
 
@@ -72,3 +76,10 @@
 - Follow Next.js best practices for file structure and routing
 - Utilize React hooks effectively for state management and side effects
 - Optimize performance with memoization and lazy loading where appropriate
+- Follow best practices for API integration and error handling
+
+## API Integration
+
+- Use `fetch` or a library like `axios` for making API calls
+- Handle API responses and errors gracefully, providing feedback to the user
+- Use environment variables for API endpoints and sensitive information

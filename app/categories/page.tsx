@@ -8,8 +8,8 @@ export default function Categories() {
       <PageTitle title="Categories" subtitle="De Guzman Household" />
 
       <div className="w-full flex justify-between gap-8">
-        <ExpenseCategoryList />
         <IncomeCategoryList />
+        <ExpenseCategoryList />
       </div>
     </>
   );

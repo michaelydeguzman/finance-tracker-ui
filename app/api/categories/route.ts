@@ -1,14 +1,9 @@
 ﻿import { CategoryType } from "@/types/shared/enums";
-import type { CreateCategoryRequest } from "@/app/categories/_types/category.api";
+import type { UpsertCategoryRequest } from "@/app/categories/_types/category.api";
+import { isValidCategoryType } from "./common/utils";
 
 const API_URL = process.env.API_URL;
 
-/**
- * GET /api/categories
- *
- * Proxies to the real backend at API_URL.
- * Supports optional ?type=0 (Income) or ?type=1 (Expense) query param.
- */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -45,14 +40,6 @@ export async function GET(request: Request) {
   }
 }
 
-const isValidCategoryType = (value: unknown): value is CategoryType =>
-  Object.values(CategoryType).includes(value as CategoryType);
-
-/**
- * POST /api/categories
- *
- * Validates the request body, then proxies category creation to the real backend.
- */
 export async function POST(request: Request) {
   if (!request.headers.get("content-type")?.includes("application/json")) {
     return Response.json(
@@ -62,7 +49,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = (await request.json()) as Partial<CreateCategoryRequest>;
+    const body = (await request.json()) as Partial<UpsertCategoryRequest>;
     const name = body?.name?.trim();
     const categoryType = body?.categoryType;
 

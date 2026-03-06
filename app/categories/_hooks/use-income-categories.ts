@@ -2,7 +2,12 @@
 
 import { useEffect } from "react";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
-import { createCategory, getCategoriesByType } from "@/lib/api/categories";
+import {
+  createCategory,
+  deleteCategory,
+  getCategoriesByType,
+  updateCategory,
+} from "@/lib/api/categories";
 import { CategoryType } from "@/types/shared/enums";
 import type { Category } from "../_types/category.model";
 
@@ -10,16 +15,18 @@ export function useIncomeCategories() {
   const { data, pending, setData, addItem, updateItem, deleteItem } =
     useOptimisticList<Category>(
       [],
-      (category) =>
+      async (category) =>
         createCategory({
           name: category.name,
           categoryType: category.categoryType,
         }),
-      async () => {
-        throw new Error("Updating income categories is not implemented yet.");
-      },
-      async () => {
-        throw new Error("Deleting income categories is not implemented yet.");
+      async (id, category) =>
+        updateCategory(id, {
+          name: category.name,
+          categoryType: category.categoryType,
+        } as Category),
+      async (id) => {
+        await deleteCategory(id);
       },
     );
 
@@ -69,7 +76,10 @@ export function useIncomeCategories() {
       return;
     }
 
-    updateItem(id, { name: trimmedCategory });
+    updateItem(id, {
+      name: trimmedCategory,
+      categoryType: CategoryType.Income,
+    });
   };
 
   const deleteIncomeCategory = (id: string): void => {

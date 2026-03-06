@@ -31,6 +31,23 @@ export default function CategoryList(props: CategoryListProps) {
 
   const { sortedData, sort, toggleSort } = useSortableData(data, (c) => c.name);
 
+  const canEdit = Boolean(onUpdate);
+  const canDelete = Boolean(onDelete);
+  const showActions = canEdit || canDelete;
+
+  useEffect(() => {
+    if (showAddRow && newRef.current) {
+      newRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      newRef.current?.focus();
+    }
+  }, [showAddRow]);
+
+  useEffect(() => {
+    if (editingCategory && editRef.current) {
+      editRef.current.focus();
+    }
+  }, [editingCategory]);
+
   const handleSaveClick = () => {
     if (!newRef.current || pending) return;
 
@@ -70,23 +87,6 @@ export default function CategoryList(props: CategoryListProps) {
     setEditingCategory(null);
     setEditValue("");
   };
-
-  useEffect(() => {
-    if (showAddRow && newRef.current) {
-      newRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      newRef.current?.focus();
-    }
-  }, [showAddRow]);
-
-  useEffect(() => {
-    if (editingCategory && editRef.current) {
-      editRef.current.focus();
-    }
-  }, [editingCategory]);
-
-  const canEdit = Boolean(onUpdate);
-  const canDelete = Boolean(onDelete);
-  const showActions = canEdit || canDelete;
 
   return (
     <Card>
@@ -189,7 +189,7 @@ export default function CategoryList(props: CategoryListProps) {
             {sortedData.length === 0 && !showAddRow && (
               <TableRow>
                 <TableCell colSpan={2} className="text-muted-foreground pl-2">
-                  No categories yet.
+                  No categories found. Click add to continue.
                 </TableCell>
               </TableRow>
             )}

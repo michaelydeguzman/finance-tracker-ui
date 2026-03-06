@@ -39,11 +39,21 @@ export async function apiFetch<T>(
     throw new Error(message);
   }
 
+  // 204 No Content (e.g. DELETE) — no body to parse.
+  if (
+    response.status === 204 ||
+    response.headers.get("content-length") === "0"
+  ) {
+    return undefined as T;
+  }
+
   const json = (await response.json()) as ApiResponse<T>;
 
-  if (!json.success) {
+  // Some endpoints (e.g. DELETE) return { message: "..." } without a success
+  // field. If the HTTP status was ok and success is absent, treat as success.
+  if (json.success === false) {
     throw new Error(json.message ?? "An unknown error occurred.");
   }
 
-  return json.data as T;
+  return (json.data ?? undefined) as T;
 }
