@@ -2,7 +2,12 @@
 
 import { useEffect } from "react";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
-import { createCategory, getCategoriesByType } from "@/lib/api/categories";
+import {
+  createCategory,
+  deleteCategory,
+  getCategoriesByType,
+  updateCategory,
+} from "@/lib/api/categories";
 import { CategoryType } from "@/types/shared/enums";
 import type { Category } from "../_types/category.model";
 
@@ -15,12 +20,12 @@ export function useExpenseCategories() {
           name: category.name,
           categoryType: category.categoryType,
         }),
-      async () => {
-        throw new Error("Updating expense categories is not implemented yet.");
-      },
-      async () => {
-        throw new Error("Deleting expense categories is not implemented yet.");
-      },
+      (id, category) =>
+        updateCategory(id, {
+          name: category.name,
+          categoryType: category.categoryType,
+        } as Category),
+      (id) => deleteCategory(id),
     );
 
   useEffect(() => {
@@ -69,7 +74,10 @@ export function useExpenseCategories() {
       return;
     }
 
-    updateItem(id, { name: trimmedCategory });
+    updateItem(id, {
+      name: trimmedCategory,
+      categoryType: CategoryType.Expense,
+    });
   };
 
   const deleteExpenseCategory = (id: string): void => {

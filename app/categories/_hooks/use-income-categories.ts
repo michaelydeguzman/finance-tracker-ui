@@ -20,14 +20,12 @@ export function useIncomeCategories() {
           name: category.name,
           categoryType: category.categoryType,
         }),
-      async (id, category) =>
+      (id, category) =>
         updateCategory(id, {
           name: category.name,
           categoryType: category.categoryType,
         } as Category),
-      async (id) => {
-        await deleteCategory(id);
-      },
+      (id) => deleteCategory(id),
     );
 
   useEffect(() => {
