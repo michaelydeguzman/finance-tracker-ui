@@ -26,7 +26,12 @@
 - Follow a consistent styling approach across the project
 - Avoid creating class names with underscores or hyphens; instead, use Tailwind utility classes directly in the JSX
 - Do not create custom CSS classes unless necessary; prefer using Tailwind's utility-first approach
-- Use shadcn/ui components where appropriate to maintain a consistent design system
+- Use shadcn/ui components where appropriate to maintain a consistent design system (e.g. buttons, models, forms, fields, modals, etc.) and customize them with Tailwind classes as needed
+
+## Component Library Usage
+
+- Leverage the component library for reusable UI elements and patterns
+- Follow the library's guidelines for usage and customization
 
 ## File Organization
 

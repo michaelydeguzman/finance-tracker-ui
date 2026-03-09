@@ -22,6 +22,7 @@ This project uses AI coding assistants ("agents") to help with development. Thes
 - Avoid large refactors unless explicitly requested.
 - For UI work:
   - Use existing shared components in `components/shared/` (e.g., `Card`, `PageTitle`, `SortButton`, `AsyncBoundary`) where possible.
+  - Use shadcn mcp server for available components to keep styling consistent.
   - Use layout primitives from `components/layout/` (e.g., `PageWithSidebar`, `StickyRightSidebar`) for page structure.
   - Do NOT create `common/` or `buttons/` folders — use `shared/` instead.
   - Co-locate feature-specific code under `app/<route>/_components/`, `_hooks/`, `_types/`, `_data/`.

@@ -18,13 +18,14 @@ export function SortButton({
   className,
 }: SortButtonProps) {
   const getSortIcon = () => {
+    const classNames = "ml-2 h-4 w-4";
     switch (sort) {
       case "asc":
-        return <ChevronUp className="ml-2 h-4 w-4" />;
+        return <ChevronUp className={classNames} />;
       case "desc":
-        return <ChevronDown className="ml-2 h-4 w-4" />;
+        return <ChevronDown className={classNames} />;
       default:
-        return <ChevronsUpDown className="ml-2 h-4 w-4" />;
+        return <ChevronsUpDown className={classNames} />;
     }
   };
 

@@ -26,6 +26,7 @@ export function useIncomeCategories() {
           categoryType: category.categoryType,
         } as Category),
       (id) => deleteCategory(id),
+      "Category",
     );
 
   useEffect(() => {
