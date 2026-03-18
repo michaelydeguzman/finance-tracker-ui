@@ -4,14 +4,19 @@ import { useMemo, useState } from "react";
 import { WalletIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
-import type { IncomeEntry } from "../_types/income.model";
+import type { IncomeEntry } from "../../transactions/_types/transaction.model";
 
 interface IncomeListProps {
   entries: IncomeEntry[];
   pageSize?: number;
+  pending?: boolean;
 }
 
-export function IncomeList({ entries, pageSize = 6 }: IncomeListProps) {
+export function IncomeList({
+  entries,
+  pageSize = 6,
+  pending = false,
+}: IncomeListProps) {
   const [visibleCount, setVisibleCount] = useState(pageSize);
 
   const sortedEntries = useMemo(
@@ -37,6 +42,16 @@ export function IncomeList({ entries, pageSize = 6 }: IncomeListProps) {
       {},
     );
   }, [visibleEntries]);
+
+  if (pending && !entries.length) {
+    return (
+      <Card>
+        <p className="text-sm text-muted-foreground">
+          Loading income transactions...
+        </p>
+      </Card>
+    );
+  }
 
   if (!entries.length) {
     return (

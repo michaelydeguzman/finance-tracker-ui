@@ -3,7 +3,7 @@ import StickyRightSidebar from "@/components/layout/sticky-right-sidebar";
 import type {
   IncomeSummaryItem,
   QuickActionItem,
-} from "../_types/income.model";
+} from "../../transactions/_types/transaction.model";
 
 interface IncomeSidebarProps {
   summary: IncomeSummaryItem[];
@@ -38,6 +38,7 @@ export function IncomeSidebar({ summary, actions }: IncomeSidebarProps) {
                   key={action.id}
                   className="w-full text-left text-sm p-2 hover:bg-accent rounded"
                   type="button"
+                  onClick={action.callback}
                 >
                   <span className="block font-medium">{action.label}</span>
                   {action.description && (

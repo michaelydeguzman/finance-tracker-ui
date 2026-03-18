@@ -1,13 +1,8 @@
-/**
- * Transaction API endpoint constants.
- *
- * Replace placeholder paths with actual API routes
- * (e.g. "/api/v1/transactions") when ready.
- */
-export const TRANSACTION_ENDPOINTS = {
-  /** GET / POST – list or create transactions. */
-  list: "/api/transactions",
+import { CategoryType } from "@/types/shared/enums";
 
-  /** GET / PUT / DELETE – single transaction by ID. */
+export const TRANSACTION_ENDPOINTS = {
+  list: "/api/transactions",
   byId: (id: string) => `/api/transactions/${id}` as const,
+  byCategoryType: (type: CategoryType) =>
+    `/api/transactions?type=${type}` as const,
 } as const;
