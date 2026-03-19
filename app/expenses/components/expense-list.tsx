@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ReceiptTextIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import type { ExpenseEntry } from "../types/expense.model";
 
 interface ExpenseListProps {
@@ -46,9 +47,10 @@ export function ExpenseList({
   if (pending && !entries.length) {
     return (
       <Card>
-        <p className="text-sm text-muted-foreground">
-          Loading expense transactions...
-        </p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Spinner className="text-muted-foreground" />
+          <span>Loading expense transactions...</span>
+        </div>
       </Card>
     );
   }

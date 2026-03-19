@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { WalletIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import type { TransactionEntry } from "../../transactions/types/transaction.model";
 
 interface IncomeListProps {
@@ -46,9 +47,10 @@ export function IncomeList({
   if (pending && !entries.length) {
     return (
       <Card>
-        <p className="text-sm text-muted-foreground">
-          Loading income transactions...
-        </p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Spinner className="text-muted-foreground" />
+          <span>Loading income transactions...</span>
+        </div>
       </Card>
     );
   }

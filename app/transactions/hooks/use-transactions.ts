@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
 import {
   createTransaction,
@@ -72,6 +72,7 @@ function formatTypeLabel(categoryType: CategoryType): string {
 export function useTransactions(
   categoryType: CategoryType,
 ): UseTransactionsResult {
+  const [isFetching, setIsFetching] = useState(true);
   const { data, pending, setData, addItem, updateItem, deleteItem } =
     useOptimisticList<Transaction>(
       [],
@@ -82,14 +83,30 @@ export function useTransactions(
     );
 
   useEffect(() => {
+    let isActive = true;
+
+    Promise.resolve().then(() => {
+      if (isActive) setIsFetching(true);
+    });
+
     getTransactionsByType(categoryType)
-      .then(setData)
+      .then((result) => {
+        if (!isActive) return;
+        setData(result);
+      })
       .catch((error) =>
         console.error(
           `Failed to fetch ${formatTypeLabel(categoryType)} transactions:`,
           error,
         ),
-      );
+      )
+      .finally(() => {
+        if (isActive) setIsFetching(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, [categoryType, setData]);
 
   const addTransactionHandler = (input: TransactionInput): void => {
@@ -176,6 +193,6 @@ export function useTransactions(
     addTransaction: addTransactionHandler,
     updateTransaction: updateTransactionHandler,
     deleteTransaction: deleteTransactionHandler,
-    pending,
+    pending: pending || isFetching,
   };
 }
