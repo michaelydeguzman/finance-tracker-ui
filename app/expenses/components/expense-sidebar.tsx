@@ -94,6 +94,7 @@ export function ExpenseSidebar({
                 key={action.id}
                 className="w-full text-left text-sm p-2 hover:bg-accent rounded"
                 type="button"
+                onClick={action.callback}
               >
                 <span className="block font-medium">{action.label}</span>
                 {action.description && (

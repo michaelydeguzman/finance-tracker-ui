@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, type ReactElement } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 import { toast } from "sonner";
 import PageWithSidebar from "@/components/layout/page-with-sidebar";
 import { ExpenseList } from "./expense-list";
 import { ExpenseSidebar } from "./expense-sidebar";
+import { AddTransactionDialog } from "@/app/transactions/components/add-transaction-dialog";
+import { CategoryType } from "@/types/shared/enums";
 
 import {
   buildExpenseEntries,
@@ -14,7 +16,9 @@ import {
 import { useExpenseTransactions } from "../hooks/use-expense-transactions";
 
 export function ExpenseClient(): ReactElement {
-  const { expenseTransactions, pending } = useExpenseTransactions();
+  const { expenseTransactions, pending, addExpenseTransaction } =
+    useExpenseTransactions();
+  const [addOpen, setAddOpen] = useState(false);
 
   const entries = useMemo(
     () => buildExpenseEntries(expenseTransactions),
@@ -27,7 +31,7 @@ export function ExpenseClient(): ReactElement {
   const actions = useMemo(
     () =>
       buildExpenseQuickActions({
-        "add-expense": () => toast.info("Expense form has not been wired yet."),
+        "add-expense": () => setAddOpen(true),
         export: () => toast.info("Export flow has not been wired yet."),
       }),
     [],
@@ -44,6 +48,12 @@ export function ExpenseClient(): ReactElement {
       }
     >
       <ExpenseList entries={entries} pending={pending} />
+      <AddTransactionDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        categoryType={CategoryType.Expense}
+        onSubmit={addExpenseTransaction}
+      />
     </PageWithSidebar>
   );
 }

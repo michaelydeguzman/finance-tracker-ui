@@ -19,6 +19,7 @@ export interface ExpenseQuickAction {
   id: string;
   label: string;
   description?: string;
+  callback: () => void;
 }
 
 export interface UpcomingBill {
