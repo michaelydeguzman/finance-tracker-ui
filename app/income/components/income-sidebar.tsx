@@ -1,12 +1,12 @@
 import Card from "@/components/shared/card";
 import StickyRightSidebar from "@/components/layout/sticky-right-sidebar";
 import type {
-  IncomeSummaryItem,
+  TransactionSummaryItem,
   QuickActionItem,
 } from "../../transactions/types/transaction.model";
 
 interface IncomeSidebarProps {
-  summary: IncomeSummaryItem[];
+  summary: TransactionSummaryItem[];
   actions: QuickActionItem[];
 }
 

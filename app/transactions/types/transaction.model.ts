@@ -15,7 +15,7 @@ export interface Transaction {
   createdBy: string;
 }
 
-export interface IncomeEntry {
+export interface TransactionEntry {
   id: string;
   title: string;
   description: string;
@@ -25,7 +25,7 @@ export interface IncomeEntry {
   date: string;
 }
 
-export interface IncomeSummaryItem {
+export interface TransactionSummaryItem {
   label: string;
   value: string;
   trend?: "up" | "down" | "flat";

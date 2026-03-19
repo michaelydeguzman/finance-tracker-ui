@@ -4,10 +4,10 @@ import { useMemo, useState } from "react";
 import { WalletIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
-import type { IncomeEntry } from "../../transactions/types/transaction.model";
+import type { TransactionEntry } from "../../transactions/types/transaction.model";
 
 interface IncomeListProps {
-  entries: IncomeEntry[];
+  entries: TransactionEntry[];
   pageSize?: number;
   pending?: boolean;
 }
@@ -33,7 +33,7 @@ export function IncomeList({
   );
 
   const groupedEntries = useMemo(() => {
-    return visibleEntries.reduce<Record<string, IncomeEntry[]>>(
+    return visibleEntries.reduce<Record<string, TransactionEntry[]>>(
       (acc, entry) => {
         const key = new Date(entry.date).toDateString();
         acc[key] = acc[key] ? [...acc[key], entry] : [entry];

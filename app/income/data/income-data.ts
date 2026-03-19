@@ -1,6 +1,6 @@
 import type {
-  IncomeEntry,
-  IncomeSummaryItem,
+  TransactionEntry,
+  TransactionSummaryItem,
   QuickActionItem,
   Transaction,
 } from "../../transactions/types/transaction.model";
@@ -19,7 +19,7 @@ const getMonthKey = (date: Date) =>
 
 export const buildIncomeEntries = (
   transactions: Transaction[],
-): IncomeEntry[] =>
+): TransactionEntry[] =>
   transactions.map((transaction) => ({
     id: transaction.id,
     title: transaction.name,
@@ -32,7 +32,7 @@ export const buildIncomeEntries = (
 
 export const buildIncomeSummary = (
   transactions: Transaction[],
-): IncomeSummaryItem[] => {
+): TransactionSummaryItem[] => {
   const monthlyTotals = transactions.reduce<Record<string, number>>(
     (acc, transaction) => {
       const key = getMonthKey(transaction.transactionDate);

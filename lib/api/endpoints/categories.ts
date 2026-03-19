@@ -12,5 +12,5 @@ export const CATEGORY_ENDPOINTS = {
   byId: (id: string) => `/api/categories/${id}` as const,
 
   /** GET – categories filtered by type (0 = Income, 1 = Expense). */
-  byType: (type: number) => `/api/categories?type=${type}` as const,
+  byType: (type: number) => `/api/categories?categoryType=${type}` as const,
 } as const;

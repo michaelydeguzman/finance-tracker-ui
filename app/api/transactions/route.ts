@@ -21,9 +21,9 @@ const isValidCategoryType = (value: unknown): value is CategoryType =>
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type");
+    const categoryType = searchParams.get("categoryType");
 
-    if (type !== null && !isValidCategoryType(Number(type))) {
+    if (categoryType !== null && !isValidCategoryType(Number(categoryType))) {
       return Response.json(
         { error: "Category type must be income or expense." },
         { status: 400 },
@@ -31,8 +31,8 @@ export async function GET(request: Request) {
     }
 
     const backendUrl =
-      type !== null
-        ? `${API_URL}/v1/transactions?type=${type}`
+      categoryType !== null
+        ? `${API_URL}/v1/transactions?categoryType=${categoryType}`
         : `${API_URL}/v1/transactions`;
 
     const response = await fetch(backendUrl);

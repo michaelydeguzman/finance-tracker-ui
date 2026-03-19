@@ -9,9 +9,14 @@ import type { ExpenseEntry } from "../types/expense.model";
 interface ExpenseListProps {
   entries: ExpenseEntry[];
   pageSize?: number;
+  pending?: boolean;
 }
 
-export function ExpenseList({ entries, pageSize = 6 }: ExpenseListProps) {
+export function ExpenseList({
+  entries,
+  pageSize = 6,
+  pending = false,
+}: ExpenseListProps) {
   const [visibleCount, setVisibleCount] = useState(pageSize);
 
   const sortedEntries = useMemo(
@@ -38,6 +43,16 @@ export function ExpenseList({ entries, pageSize = 6 }: ExpenseListProps) {
     );
   }, [visibleEntries]);
 
+  if (pending && !entries.length) {
+    return (
+      <Card>
+        <p className="text-sm text-muted-foreground">
+          Loading expense transactions...
+        </p>
+      </Card>
+    );
+  }
+
   if (!entries.length) {
     return (
       <Card>
@@ -56,67 +71,50 @@ export function ExpenseList({ entries, pageSize = 6 }: ExpenseListProps) {
       year: "numeric",
     }).format(new Date(value));
 
-  const formatCurrency = (entry: ExpenseEntry) =>
-    entry.amount.toLocaleString(undefined, {
-      style: "currency",
-      currency: entry.currency,
-      maximumFractionDigits: 0,
-    });
-
   return (
     <div className="space-y-8">
-      {Object.entries(groupedEntries).map(([key, dailyEntries]) => {
-        const dailyTotal = dailyEntries.reduce(
-          (sum, current) => sum + current.amount,
-          0,
-        );
-        const displayCurrency =
-          dailyEntries.at(0)?.currency ?? entries.at(0)?.currency ?? "CAD";
-
-        return (
-          <section key={key} className="space-y-3">
-            <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
-              <span>{formatDateLabel(key)}</span>
-              <span className="font-semibold text-foreground">
-                {dailyTotal.toLocaleString(undefined, {
-                  style: "currency",
-                  currency: displayCurrency,
-                  maximumFractionDigits: 0,
-                })}
-              </span>
-            </div>
-            <div className="space-y-4">
-              {dailyEntries.map((entry, index) => (
-                <div key={entry.id} className="flex flex-col">
-                  <div className="p-4 rounded-lg flex items-center gap-4 hover:bg-muted/60 transition">
-                    <div className="rounded-full bg-destructive/10 p-3 text-destructive">
-                      <ReceiptTextIcon className="size-5" />
+      {Object.entries(groupedEntries).map(([key, dailyEntries]) => (
+        <section key={key} className="space-y-3">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            {formatDateLabel(key)}
+          </div>
+          <div className="space-y-4">
+            {dailyEntries.map((entry, index) => (
+              <div key={entry.id} className="flex flex-col">
+                <div className="p-4 rounded-lg flex items-center gap-4 hover:bg-gray-100 cursor-pointer">
+                  <div className="rounded-full bg-destructive/10 p-3 text-destructive">
+                    <ReceiptTextIcon className="size-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">{entry.title}</h4>
                     </div>
-
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <h4 className="font-medium">{entry.title}</h4>
-                        <span className="font-semibold text-destructive">
-                          -{formatCurrency(entry)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {entry.description}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        <span>Category: {entry.category}</span>
-                      </div>
+                    <p className="text-sm text-muted-foreground">
+                      {entry.description}
+                    </p>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Category: {entry.category}
                     </div>
                   </div>
-                  {index < dailyEntries.length - 1 && (
-                    <div className="pt-4 border-b border-border" />
-                  )}
+                  <div className="text-right">
+                    <span className="font-semibold text-destructive">
+                      -
+                      {entry.amount.toLocaleString(undefined, {
+                        style: "currency",
+                        currency: entry.currency,
+                        maximumFractionDigits: 0,
+                      })}
+                    </span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </section>
-        );
-      })}
+                {index < dailyEntries.length - 1 && (
+                  <div className="pt-4 border-b border-border" />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
 
       {visibleCount < sortedEntries.length && (
         <div className="flex justify-center">

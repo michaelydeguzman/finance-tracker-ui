@@ -1,5 +1,4 @@
-﻿import { CategoryType } from "@/types/shared/enums";
-import type { UpsertCategoryRequest } from "@/app/categories/types/category.api";
+﻿import type { UpsertCategoryRequest } from "@/app/categories/types/category.api";
 import { isValidCategoryType } from "./common/utils";
 
 const API_URL = process.env.API_URL;
@@ -7,11 +6,11 @@ const API_URL = process.env.API_URL;
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type");
+    const categoryType = searchParams.get("categoryType");
 
     const backendUrl =
-      type !== null
-        ? `${API_URL}/v1/categories?type=${type}`
+      categoryType !== null
+        ? `${API_URL}/v1/categories?categoryType=${categoryType}`
         : `${API_URL}/v1/categories`;
 
     console.log("[GET /api/categories] backendUrl:", backendUrl);
