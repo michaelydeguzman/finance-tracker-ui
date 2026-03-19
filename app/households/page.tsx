@@ -1,5 +1,5 @@
 import PageTitle from "@/components/shared/page-title";
-import HouseholdList from "./_components/household-list";
+import HouseholdList from "./components/household-list";
 
 export default function Households() {
   return (

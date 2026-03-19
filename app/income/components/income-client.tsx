@@ -5,12 +5,12 @@ import { toast } from "sonner";
 import PageWithSidebar from "@/components/layout/page-with-sidebar";
 import { IncomeList } from "./income-list";
 import { IncomeSidebar } from "./income-sidebar";
-import { useIncomeTransactions } from "../_hooks/use-income-transactions";
+import { useIncomeTransactions } from "../hooks/use-income-transactions";
 import {
   buildIncomeEntries,
   buildIncomeQuickActions,
   buildIncomeSummary,
-} from "../_data/income-data";
+} from "../data/income-data";
 
 export function IncomeClient(): ReactElement {
   const { incomeTransactions, pending } = useIncomeTransactions();
@@ -33,7 +33,9 @@ export function IncomeClient(): ReactElement {
   );
 
   return (
-    <PageWithSidebar sidebar={<IncomeSidebar summary={summary} actions={actions} />}>
+    <PageWithSidebar
+      sidebar={<IncomeSidebar summary={summary} actions={actions} />}
+    >
       <IncomeList entries={entries} pending={pending} />
     </PageWithSidebar>
   );

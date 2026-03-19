@@ -1,11 +1,11 @@
 import type { CategoryType } from "@/types/shared/enums";
 import { TRANSACTION_ENDPOINTS } from "@/lib/api/endpoints";
 import { apiFetch } from "@/lib/api/config";
-import type { Transaction } from "@/app/transactions/_types/transaction.model";
+import type { Transaction } from "@/app/transactions/types/transaction.model";
 import type {
   TransactionResponse,
   UpsertTransactionRequest,
-} from "@/app/transactions/_types/transaction.api";
+} from "@/app/transactions/types/transaction.api";
 
 const mapTransaction = (transaction: TransactionResponse): Transaction => ({
   ...transaction,

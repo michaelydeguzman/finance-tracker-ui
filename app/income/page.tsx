@@ -1,5 +1,5 @@
 import PageTitle from "@/components/shared/page-title";
-import { IncomeClient } from "./_components/income-client";
+import { IncomeClient } from "./components/income-client";
 
 export default function Income() {
   return (

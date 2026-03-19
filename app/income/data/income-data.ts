@@ -3,7 +3,7 @@ import type {
   IncomeSummaryItem,
   QuickActionItem,
   Transaction,
-} from "../../transactions/_types/transaction.model";
+} from "../../transactions/types/transaction.model";
 
 const DISPLAY_CURRENCY = "CAD";
 

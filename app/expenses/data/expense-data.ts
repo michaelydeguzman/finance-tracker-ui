@@ -3,7 +3,7 @@ import type {
   ExpenseQuickAction,
   ExpenseSummaryItem,
   UpcomingBill,
-} from "../_types/expense.model";
+} from "../types/expense.model";
 
 export const expenseEntries: ExpenseEntry[] = [
   {

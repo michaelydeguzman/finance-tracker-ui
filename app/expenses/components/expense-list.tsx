@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ReceiptTextIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
-import type { ExpenseEntry } from "../_types/expense.model";
+import type { ExpenseEntry } from "../types/expense.model";
 
 interface ExpenseListProps {
   entries: ExpenseEntry[];

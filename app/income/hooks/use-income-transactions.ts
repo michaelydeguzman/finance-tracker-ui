@@ -9,8 +9,8 @@ import {
   updateTransaction,
 } from "@/lib/api/transactions";
 import { CategoryType } from "@/types/shared/enums";
-import type { Transaction } from "../../transactions/_types/transaction.model";
-import type { UpsertTransactionRequest } from "../../transactions/_types/transaction.api";
+import type { Transaction } from "../../transactions/types/transaction.model";
+import type { UpsertTransactionRequest } from "../../transactions/types/transaction.api";
 
 const DEFAULT_CREATED_BY = "finance-tracker-ui";
 

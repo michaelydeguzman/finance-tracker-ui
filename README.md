@@ -26,7 +26,7 @@ The project leans on Tailwind CSS 4 with a custom design token layer defined in 
 3. **Component layers**
    - **UI primitives** (`components/ui/*`): low-level building blocks mapped over Radix UI (buttons, cards, dropdowns, tooltips). Extend these first when styling repeated patterns.
    - **Common layout widgets** (`components/common/*`, `components/layout/*`): ready-made shells like `PageTitle`, `Card`, `PageWithSidebar`, and `StickyRightSidebar` keep spacing and typography consistent. Compose these before adding bespoke flex/grid rules.
-   - **Feature modules** (`app/**/_components` and `components/templates/**`): contain domain-specific styling. Keep Tailwind classes close to the JSX, limit inline styles, and rely on shared primitives for consistency.
+   - **Feature modules** (`app/**/components` and `components/templates/**`): contain domain-specific styling. Keep Tailwind classes close to the JSX, limit inline styles, and rely on shared primitives for consistency.
 
 4. **Spacing, radius, and motion**
    - Border radius tokens (`--radius`, `--radius-sm|md|lg|xl`) govern rounded corners. Use Tailwind utilities (`rounded-lg`, `rounded-xl`) instead of numeric values so tokens can evolve centrally.
@@ -40,7 +40,7 @@ The project leans on Tailwind CSS 4 with a custom design token layer defined in 
 
 1. Decide whether it belongs in `components/ui`, `components/common`, or a feature folder.
 2. Compose existing primitives (e.g., `Card`, `Button`) and extend with Tailwind utilities.
-3. Export supporting types from `types/` or the feature’s `_types` folder.
+3. Export supporting types from `types/` or the feature’s `types` folder.
 4. Document noteworthy props with JSDoc and add tests if logic goes beyond simple presentation.
 
 ## Project structure

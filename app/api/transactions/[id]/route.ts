@@ -1,4 +1,4 @@
-import type { UpsertTransactionRequest } from "@/app/transactions/_types/transaction.api";
+import type { UpsertTransactionRequest } from "@/app/transactions/types/transaction.api";
 
 const API_URL = process.env.API_URL;
 

@@ -1,13 +1,13 @@
 import PageTitle from "@/components/shared/page-title";
 import PageWithSidebar from "@/components/layout/page-with-sidebar";
-import { ExpenseList } from "./_components/expense-list";
-import { ExpenseSidebar } from "./_components/expense-sidebar";
+import { ExpenseList } from "./components/expense-list";
+import { ExpenseSidebar } from "./components/expense-sidebar";
 import {
   expenseEntries,
   expenseQuickActions,
   expenseSummary,
   upcomingBills,
-} from "./_data/expense-data";
+} from "./data/expense-data";
 
 export default function Expenses() {
   return (

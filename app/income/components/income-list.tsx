@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { WalletIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
-import type { IncomeEntry } from "../../transactions/_types/transaction.model";
+import type { IncomeEntry } from "../../transactions/types/transaction.model";
 
 interface IncomeListProps {
   entries: IncomeEntry[];

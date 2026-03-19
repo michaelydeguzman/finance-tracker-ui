@@ -9,13 +9,13 @@ import {
   updateCategory,
 } from "@/lib/api/categories";
 import { CategoryType } from "@/types/shared/enums";
-import type { Category } from "../_types/category.model";
+import type { Category } from "../types/category.model";
 
-export function useExpenseCategories() {
+export function useIncomeCategories() {
   const { data, pending, setData, addItem, updateItem, deleteItem } =
     useOptimisticList<Category>(
       [],
-      (category) =>
+      async (category) =>
         createCategory({
           name: category.name,
           categoryType: category.categoryType,
@@ -30,14 +30,14 @@ export function useExpenseCategories() {
     );
 
   useEffect(() => {
-    getCategoriesByType(CategoryType.Expense)
+    getCategoriesByType(CategoryType.Income)
       .then(setData)
       .catch((error) =>
-        console.error("Failed to fetch expense categories:", error),
+        console.error("Failed to fetch income categories:", error),
       );
   }, [setData]);
 
-  const addExpenseCategory = (category: string): void => {
+  const addIncomeCategory = (category: string): void => {
     const trimmedCategory = category.trim();
 
     if (!trimmedCategory) {
@@ -54,13 +54,13 @@ export function useExpenseCategories() {
 
     addItem({
       name: trimmedCategory,
-      categoryType: CategoryType.Expense,
+      categoryType: CategoryType.Income,
       createdAt: new Date(),
       isActive: true,
     });
   };
 
-  const updateExpenseCategory = (id: string, category: string): void => {
+  const updateIncomeCategory = (id: string, category: string): void => {
     const trimmedCategory = category.trim();
 
     if (!trimmedCategory) {
@@ -77,11 +77,11 @@ export function useExpenseCategories() {
 
     updateItem(id, {
       name: trimmedCategory,
-      categoryType: CategoryType.Expense,
+      categoryType: CategoryType.Income,
     });
   };
 
-  const deleteExpenseCategory = (id: string): void => {
+  const deleteIncomeCategory = (id: string): void => {
     const category = data.find((item) => item.id === id);
     const label = category?.name ?? "this category";
 
@@ -93,10 +93,10 @@ export function useExpenseCategories() {
   };
 
   return {
-    expenseCategories: data,
-    addExpenseCategory,
-    updateExpenseCategory,
-    deleteExpenseCategory,
+    incomeCategories: data,
+    addIncomeCategory,
+    updateIncomeCategory,
+    deleteIncomeCategory,
     pending,
   };
 }

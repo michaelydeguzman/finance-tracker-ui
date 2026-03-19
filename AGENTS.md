@@ -25,7 +25,7 @@ This project uses AI coding assistants ("agents") to help with development. Thes
   - Use shadcn mcp server for available components to keep styling consistent.
   - Use layout primitives from `components/layout/` (e.g., `PageWithSidebar`, `StickyRightSidebar`) for page structure.
   - Do NOT create `common/` or `buttons/` folders — use `shared/` instead.
-  - Co-locate feature-specific code under `app/<route>/_components/`, `_hooks/`, `_types/`, `_data/`.
+  - Co-locate feature-specific code under `app/<route>/components/`, `hooks/`, `types/`, `data/`.
   - Keep styling consistent with the rest of the app (Tailwind + shadcn/ui).
 - For new logic or data flow, describe:
   - Inputs / outputs

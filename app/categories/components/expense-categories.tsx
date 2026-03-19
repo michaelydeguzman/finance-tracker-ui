@@ -1,7 +1,7 @@
 "use client";
 
-import { useExpenseCategories } from "../_hooks/use-expense-categories";
-import CategoryList from "@/app/categories/_components/category-list";
+import { useExpenseCategories } from "../hooks/use-expense-categories";
+import CategoryList from "@/app/categories/components/category-list";
 
 export default function ExpenseCategoryList() {
   const {

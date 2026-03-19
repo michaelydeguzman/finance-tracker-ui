@@ -1,5 +1,5 @@
-import type { UpsertCategoryRequest } from "@/app/categories/_types/category.api";
-import type { Category } from "@/app/categories/_types/category.model";
+import type { UpsertCategoryRequest } from "@/app/categories/types/category.api";
+import type { Category } from "@/app/categories/types/category.model";
 import type { CategoryType } from "@/types/shared/enums";
 import { CATEGORY_ENDPOINTS } from "@/lib/api/endpoints";
 import { apiFetch } from "@/lib/api/config";

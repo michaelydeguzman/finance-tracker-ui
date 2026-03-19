@@ -1,6 +1,6 @@
 import PageTitle from "@/components/shared/page-title";
-import ExpenseCategoryList from "./_components/expense-categories";
-import IncomeCategoryList from "./_components/income-categories";
+import ExpenseCategoryList from "./components/expense-categories";
+import IncomeCategoryList from "./components/income-categories";
 
 export default function Categories() {
   return (

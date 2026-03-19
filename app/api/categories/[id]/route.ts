@@ -1,4 +1,4 @@
-import type { UpsertCategoryRequest } from "@/app/categories/_types/category.api";
+import type { UpsertCategoryRequest } from "@/app/categories/types/category.api";
 import { isValidCategoryType } from "../common/utils";
 
 const API_URL = process.env.API_URL;

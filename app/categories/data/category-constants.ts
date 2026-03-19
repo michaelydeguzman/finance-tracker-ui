@@ -1,5 +1,5 @@
 import { CategoryType } from "@/types/shared/enums";
-import { Category } from "../_types/category.model";
+import { Category } from "../types/category.model";
 
 export const INCOME_CATEGORIES: Category[] = [
   {
