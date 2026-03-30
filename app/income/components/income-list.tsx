@@ -1,22 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { WalletIcon } from "lucide-react";
+import { PencilIcon, Trash2Icon, WalletIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 import type { TransactionEntry } from "../../transactions/types/transaction.model";
 
 interface IncomeListProps {
   entries: TransactionEntry[];
   pageSize?: number;
   pending?: boolean;
+  onEditEntry?: (id: string) => void;
+  onDeleteEntry?: (id: string) => void;
 }
 
 export function IncomeList({
   entries,
   pageSize = 6,
   pending = false,
+  onEditEntry,
+  onDeleteEntry,
 }: IncomeListProps) {
   const [visibleCount, setVisibleCount] = useState(pageSize);
 
@@ -83,12 +88,17 @@ export function IncomeList({
           <div className="space-y-4">
             {dailyEntries.map((entry, index) => (
               <div key={entry.id} className="flex flex-col">
-                <div className="p-4 rounded-lg flex items-center gap-4 hover:bg-gray-100 cursor-pointer">
-                  <div className="rounded-full bg-primary/10 p-3 text-primary">
+                <div
+                  className={cn(
+                    "group p-4 rounded-lg flex items-center gap-4 cursor-default",
+                    "hover:bg-muted/60",
+                  )}
+                >
+                  <div className="rounded-full bg-primary/10 p-3 text-primary shrink-0">
                     <WalletIcon className="size-5" />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
                       <h4 className="font-medium">{entry.title}</h4>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -98,14 +108,48 @@ export function IncomeList({
                       Category: {entry.category}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-semibold">
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="font-semibold text-right tabular-nums">
                       {entry.amount.toLocaleString(undefined, {
                         style: "currency",
                         currency: entry.currency,
                         maximumFractionDigits: 0,
                       })}
                     </span>
+                    <div
+                      className={cn(
+                        "flex items-center gap-1 transition-opacity duration-150",
+                        "opacity-0 [@media(hover:none)]:opacity-100",
+                        "group-hover:opacity-100 group-focus-within:opacity-100",
+                      )}
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        aria-label="Edit transaction"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditEntry?.(entry.id);
+                        }}
+                      >
+                        <PencilIcon className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        aria-label="Delete transaction"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteEntry?.(entry.id);
+                        }}
+                      >
+                        <Trash2Icon className="size-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 {index < dailyEntries.length - 1 && (

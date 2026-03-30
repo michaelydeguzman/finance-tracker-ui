@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CategoryType } from "@/types/shared/enums";
 import { Button } from "@/components/ui/button";
@@ -23,13 +23,19 @@ import {
 } from "@/components/ui/select";
 import { useIncomeCategories } from "@/app/categories/hooks/use-income-categories";
 import { useExpenseCategories } from "@/app/categories/hooks/use-expense-categories";
+import type { Transaction } from "../types/transaction.model";
 import type { TransactionInput } from "../hooks/use-transactions";
 
-type AddTransactionDialogProps = {
+export type AddTransactionDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categoryType: CategoryType.Income | CategoryType.Expense;
-  onSubmit: (input: TransactionInput) => void;
+  mode?: "create" | "edit";
+  /** Required when `mode` is `"edit"` — row being edited. */
+  transaction?: Transaction | null;
+  onSubmit?: (input: TransactionInput) => void;
+  /** Required when `mode` is `"edit"`. */
+  onUpdate?: (id: string, input: TransactionInput) => void;
   createdBy?: string;
 };
 
@@ -44,16 +50,21 @@ export function AddTransactionDialog({
   open,
   onOpenChange,
   categoryType,
+  mode = "create",
+  transaction = null,
   onSubmit,
+  onUpdate,
   createdBy = "finance-tracker-ui",
 }: AddTransactionDialogProps) {
   const income = useIncomeCategories();
   const expense = useExpenseCategories();
-  const categoryState = categoryType === CategoryType.Income ? income : expense;
+  const categoryState =
+    categoryType === CategoryType.Income ? income : expense;
 
-  const categories = categoryType === CategoryType.Income
-    ? income.incomeCategories
-    : expense.expenseCategories;
+  const categories =
+    categoryType === CategoryType.Income
+      ? income.incomeCategories
+      : expense.expenseCategories;
 
   const categoriesPending = categoryState.pending;
 
@@ -70,9 +81,19 @@ export function AddTransactionDialog({
     return map;
   }, [categories]);
 
-  const title = categoryType === CategoryType.Income ? "Add Income" : "Add Expense";
-  const subtitle =
-    categoryType === CategoryType.Income
+  const isEdit = mode === "edit";
+
+  const title = isEdit
+    ? categoryType === CategoryType.Income
+      ? "Edit income"
+      : "Edit expense"
+    : categoryType === CategoryType.Income
+      ? "Add Income"
+      : "Add Expense";
+
+  const subtitle = isEdit
+    ? "Update this transaction."
+    : categoryType === CategoryType.Income
       ? "Log a new income transaction."
       : "Log a new expense transaction.";
 
@@ -83,6 +104,19 @@ export function AddTransactionDialog({
     setAmount("");
     setDate(toDateInputValue(new Date()));
   };
+
+  useEffect(() => {
+    if (!open) return;
+    if (isEdit && transaction) {
+      setName(transaction.name);
+      setCategoryId(transaction.categoryId);
+      setDescription(transaction.description ?? "");
+      setAmount(String(transaction.amount));
+      setDate(toDateInputValue(transaction.transactionDate));
+    } else if (!isEdit) {
+      reset();
+    }
+  }, [open, isEdit, transaction]);
 
   const handleSubmit = async () => {
     const trimmedName = name.trim();
@@ -122,19 +156,37 @@ export function AddTransactionDialog({
         categoryName,
         amount: numericAmount,
         transactionDate,
-        frequencyId: null,
-        frequencyName: null,
-        createdBy,
+        frequencyId: isEdit && transaction ? (transaction.frequencyId ?? null) : null,
+        frequencyName:
+          isEdit && transaction ? (transaction.frequencyName ?? null) : null,
+        createdBy:
+          isEdit && transaction?.createdBy?.trim()
+            ? transaction.createdBy
+            : createdBy,
         ...(description.trim() ? { description: description.trim() } : {}),
       };
 
-      onSubmit(payload);
-
-      toast.success(`${title} saved.`);
-      reset();
-      onOpenChange(false);
+      if (isEdit) {
+        if (!transaction?.id || !onUpdate) {
+          toast.error("Nothing to update.");
+          return;
+        }
+        onUpdate(transaction.id, payload);
+        reset();
+        onOpenChange(false);
+      } else {
+        if (!onSubmit) {
+          toast.error("Submit handler missing.");
+          return;
+        }
+        onSubmit(payload);
+        toast.success(`${title} saved.`);
+        reset();
+        onOpenChange(false);
+      }
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to save transaction.";
+      const message =
+        e instanceof Error ? e.message : "Failed to save transaction.";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -161,7 +213,9 @@ export function AddTransactionDialog({
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={categoryType === CategoryType.Income ? "Salary" : "Groceries"}
+              placeholder={
+                categoryType === CategoryType.Income ? "Salary" : "Groceries"
+              }
               autoFocus
             />
           </div>
@@ -175,7 +229,11 @@ export function AddTransactionDialog({
             >
               <SelectTrigger>
                 <SelectValue
-                  placeholder={categoriesPending ? "Loading categories..." : "Select a category"}
+                  placeholder={
+                    categoriesPending
+                      ? "Loading categories..."
+                      : "Select a category"
+                  }
                 />
               </SelectTrigger>
               <SelectContent>
@@ -251,4 +309,3 @@ export function AddTransactionDialog({
     </Dialog>
   );
 }
-

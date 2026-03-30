@@ -1,18 +1,10 @@
 import type { UpsertTransactionRequest } from "@/app/transactions/types/transaction.api";
+import {
+  buildNormalizedTransactionUpsertBody,
+  isValidTransactionDate,
+} from "../common/utils";
 
 const API_URL = process.env.API_URL;
-
-const isValidTransactionDate = (value: unknown): value is string | Date => {
-  if (value instanceof Date) {
-    return !Number.isNaN(value.getTime());
-  }
-
-  if (typeof value !== "string") {
-    return false;
-  }
-
-  return !Number.isNaN(new Date(value).getTime());
-};
 
 export async function GET(
   request: Request,
@@ -96,10 +88,12 @@ export async function PUT(
       );
     }
 
+    const normalized = buildNormalizedTransactionUpsertBody(body);
+
     const response = await fetch(`${API_URL}/v1/transactions/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(normalized),
     });
 
     if (!response.ok) {
@@ -111,7 +105,7 @@ export async function PUT(
     }
 
     const data = await response.json();
-    return Response.json(data);
+    return Response.json(data, { status: 200 });
   } catch (reason) {
     const message =
       reason instanceof Error ? reason.message : "Unexpected server error.";

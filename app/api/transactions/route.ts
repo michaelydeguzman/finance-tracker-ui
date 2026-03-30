@@ -1,29 +1,21 @@
 import type { UpsertTransactionRequest } from "@/app/transactions/types/transaction.api";
-import { CategoryType } from "@/types/shared/enums";
+import {
+  buildNormalizedTransactionUpsertBody,
+  isValidCategoryTypeValue,
+  isValidTransactionDate,
+} from "./common/utils";
 
 const API_URL = process.env.API_URL;
-
-const isValidTransactionDate = (value: unknown): value is string | Date => {
-  if (value instanceof Date) {
-    return !Number.isNaN(value.getTime());
-  }
-
-  if (typeof value !== "string") {
-    return false;
-  }
-
-  return !Number.isNaN(new Date(value).getTime());
-};
-
-const isValidCategoryType = (value: unknown): value is CategoryType =>
-  Object.values(CategoryType).includes(value as CategoryType);
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const categoryType = searchParams.get("categoryType");
 
-    if (categoryType !== null && !isValidCategoryType(Number(categoryType))) {
+    if (
+      categoryType !== null &&
+      !isValidCategoryTypeValue(Number(categoryType))
+    ) {
       return Response.json(
         { error: "Category type must be income or expense." },
         { status: 400 },
@@ -97,10 +89,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const normalized = buildNormalizedTransactionUpsertBody(body);
+
     const response = await fetch(`${API_URL}/v1/transactions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(normalized),
     });
 
     if (!response.ok) {
