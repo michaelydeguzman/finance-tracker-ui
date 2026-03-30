@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
 import {
   createTransaction,
@@ -94,12 +95,19 @@ export function useTransactions(
         if (!isActive) return;
         setData(result);
       })
-      .catch((error) =>
+      .catch((error) => {
         console.error(
           `Failed to fetch ${formatTypeLabel(categoryType)} transactions:`,
           error,
-        ),
-      )
+        );
+        if (isActive) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Could not load transactions.";
+          toast.error(message);
+        }
+      })
       .finally(() => {
         if (isActive) setIsFetching(false);
       });
@@ -113,17 +121,17 @@ export function useTransactions(
     const name = input.name.trim();
 
     if (!name) {
-      alert("Transaction name cannot be empty.");
+      toast.error("Transaction name cannot be empty.");
       return;
     }
 
     if (!input.categoryId.trim()) {
-      alert("Category is required.");
+      toast.error("Category is required.");
       return;
     }
 
     if (!Number.isFinite(input.amount) || input.amount <= 0) {
-      alert("Amount must be greater than zero.");
+      toast.error("Amount must be greater than zero.");
       return;
     }
 
@@ -145,17 +153,17 @@ export function useTransactions(
     const nextAmount = input.amount ?? existing.amount;
 
     if (!nextName) {
-      alert("Transaction name cannot be empty.");
+      toast.error("Transaction name cannot be empty.");
       return;
     }
 
     if (!nextCategoryId.trim()) {
-      alert("Category is required.");
+      toast.error("Category is required.");
       return;
     }
 
     if (!Number.isFinite(nextAmount) || nextAmount <= 0) {
-      alert("Amount must be greater than zero.");
+      toast.error("Amount must be greater than zero.");
       return;
     }
 
@@ -178,13 +186,6 @@ export function useTransactions(
   };
 
   const deleteTransactionHandler = (id: string): void => {
-    const transaction = data.find((item) => item.id === id);
-    const label = transaction?.name ?? "this transaction";
-
-    if (!confirm(`Delete ${label}? This cannot be undone.`)) {
-      return;
-    }
-
     deleteItem(id);
   };
 
