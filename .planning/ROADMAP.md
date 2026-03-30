@@ -13,6 +13,17 @@ Plans:
 - [x] `1000-01-PLAN.md` — Root shell: ThemeProvider + `@/components/ui/sonner`
 - [x] `1000-02-PLAN.md` — Agent docs: copilot-instructions + `finance-tracker-agents.mdc`
 
+### Phase 1001: Complete income and expense transaction CRUD
+
+**Goal:** Expose full CRUD on `/income` and `/expenses`: users can **edit** existing transactions and **delete** with an explicit confirmation step, using existing `lib/api/transactions` + `useTransactions` optimistic updates and shadcn/ui patterns.
+**Requirements:** TBD
+**Depends on:** (none)
+**Plans:** 2 plans
+
+Plans:
+- [x] `1001-01-PLAN.md` — Transaction PUT/DELETE API parity (category pattern) + AlertDialog + hook + edit/delete shared components
+- [x] `1001-02-PLAN.md` — Income/expense lists + clients wiring
+
 ## Backlog
 
 ### Phase 999.1: Implement login (BACKLOG)

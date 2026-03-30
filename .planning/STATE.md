@@ -8,3 +8,6 @@
 - Phase 1000 context gathered (must-have): `.planning/phases/1000-cleanup-ui-coding-standards-find-what-is-messy-and-let-s-discuss/1000-CONTEXT.md`
 - Phase 1000 planned: `1000-01-PLAN.md`, `1000-02-PLAN.md` (ready for `/gsd-execute-phase`)
 - Phase 1000 executed (wave 1): layout + agent docs — see `1000-EXEC-SUMMARY.md`
+- Phase 1001 added to `ROADMAP.md`: complete income/expense transaction CRUD (edit + delete with confirmation)
+- Phase 1001 executed: `1001-01-SUMMARY.md`, `1001-02-SUMMARY.md` — API parity + UI CRUD on `/income` and `/expenses`
+- Phase 1001 UAT complete: `1001-UAT.md` — 4/4 passed
