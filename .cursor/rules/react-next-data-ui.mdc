@@ -1,0 +1,11 @@
+---
+description: Next.js / React data-loading and UI patterns for this repo
+globs: "{app,components,hooks,lib}/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# React / App Router — data and UI
+
+- Prefer **Server Components** for **initial page data** when practical; keep **client** boundaries for interactivity, forms, and optimistic updates.
+- Avoid showing **empty “no data”** UI while a fetch is still **in progress**; use route **`loading.tsx`**, **`Spinner`**, or **`Skeleton`** as appropriate.
+- For mutations, keep patterns consistent with existing hooks (e.g. optimistic lists); validate before submit; avoid **`alert()`** / **`confirm()`** for primary UX — prefer dialogs and toasts.

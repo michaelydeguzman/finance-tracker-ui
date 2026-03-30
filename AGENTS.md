@@ -2,6 +2,11 @@
 
 This project uses AI coding assistants ("agents") to help with development. These notes explain how they should behave in this repository.
 
+## Cursor
+
+- Persistent agent guidance for Cursor lives in **`.cursor/rules/*.mdc`** (e.g. `finance-tracker-agents.mdc` applies in every session).
+- Keep Cursor rules aligned with this file and **`.github/copilot-instructions.md`** when you change conventions.
+
 ## Primary agent: GitHub Copilot Chat
 
 - Acts as a **pair programmer**: propose changes, explain reasoning, and edit files when asked.
