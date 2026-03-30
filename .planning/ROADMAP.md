@@ -10,8 +10,8 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] `1000-01-PLAN.md` — Root layout: Toaster inside ThemeProvider (`@/components/ui/sonner`)
-- [ ] `1000-02-PLAN.md` — AGENTS + copilot-instructions alignment (D-03–D-07, D-05)
+- [ ] `1000-01-PLAN.md` — Root shell: ThemeProvider + `@/components/ui/sonner`
+- [ ] `1000-02-PLAN.md` — Agent docs: copilot-instructions + `finance-tracker-agents.mdc`
 
 ## Backlog
 
