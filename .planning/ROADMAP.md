@@ -10,8 +10,8 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] `1000-01-PLAN.md` — Root shell: ThemeProvider + `@/components/ui/sonner`
-- [ ] `1000-02-PLAN.md` — Agent docs: copilot-instructions + `finance-tracker-agents.mdc`
+- [x] `1000-01-PLAN.md` — Root shell: ThemeProvider + `@/components/ui/sonner`
+- [x] `1000-02-PLAN.md` — Agent docs: copilot-instructions + `finance-tracker-agents.mdc`
 
 ## Backlog
 

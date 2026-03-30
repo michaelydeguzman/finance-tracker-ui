@@ -1,0 +1,40 @@
+---
+description: How AI agents (Cursor, Copilot, etc.) should work in finance-tracker-ui
+alwaysApply: true
+---
+
+# Agent rules — finance-tracker-ui
+
+## Role and sources of truth
+
+- Act as a **pair programmer**: propose changes, explain briefly, edit when asked.
+- Follow **`AGENTS.md`**, **`.github/copilot-instructions.md`**, and other `.cursor/rules/*` when they apply.
+
+## Stack and quality bar
+
+- **Next.js App Router**, **React 19**, **Tailwind**, **shadcn/ui** under `components/ui/`.
+- **TypeScript strict** settings (`exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`): omit optional props instead of passing `undefined`; narrow `unknown` errors before use.
+
+## UI and file layout
+
+- Use **`components/shared/`**, **`components/layout/`**, **`components/ui/`** for UI. Do **not** add `common/` or `buttons/` — use `shared/` instead.
+- Co-locate feature code under **`app/<route>/components/`**, **`hooks/`**, **`types/`**, **`data/`**.
+- Match existing naming: PascalCase for components/types, camelCase for functions/variables.
+
+## Data and API
+
+- Prefer **`lib/api/config.ts`** (`apiFetch`) and **`app/api/*`** route handlers that proxy the backend.
+- Add **error handling** for inputs and API calls; give users **actionable feedback** (e.g. Sonner toasts, inline validation), not only `console.error`.
+
+## Workflow
+
+- Prefer **small, reviewable diffs**; avoid drive-by refactors and unrelated files.
+- For non-trivial behavior changes, run **`npm run build`** and/or **`npm test`** when possible and report the outcome.
+- Do **not** add unsolicited README or long markdown docs unless the user asks.
+
+## Phase 1000 standards (locked)
+
+- **Server vs client:** Prefer **Server Components** by default for `app/**` pages and layouts. Use **`"use client"`** only when the module needs hooks, effects, browser-only APIs, or a client-only interactive subtree; keep client surfaces small (e.g. route `*-client.tsx` wrappers).
+- **Colocation:** Route-specific code under **`app/<route>/components/`**, **`hooks/`**, **`types/`**, **`data/`**. Cross-route UI in **`components/shared/`** or **`components/layout/`**; design primitives in **`components/ui/`**. Do **not** add `common/` or `buttons/`.
+- **Styling:** Prefer **semantic Tailwind tokens** and **`cn()`** for conditional classes; avoid gratuitous raw `gray-*` utilities.
+- **Theming / toasts:** Global **`Toaster`** must come from **`@/components/ui/sonner`** and sit **inside** **`ThemeProvider`** in `app/layout.tsx` so `next-themes` applies correctly.

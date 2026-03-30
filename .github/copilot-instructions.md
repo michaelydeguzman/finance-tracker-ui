@@ -23,6 +23,7 @@
 ## Styling
 
 - Use Tailwind CSS for styling components
+- Prefer semantic design tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, etc.) over ad-hoc palette utilities unless there is a deliberate visual exception
 - Follow a consistent styling approach across the project
 - Avoid creating class names with underscores or hyphens; instead, use Tailwind utility classes directly in the JSX
 - Do not create custom CSS classes unless necessary; prefer using Tailwind's utility-first approach
@@ -46,7 +47,7 @@
   - `header/` — app header components
   - `sidebar/` — app sidebar components
   - `dashboard/` — dashboard-specific components
-  - `ui/` — shadcn/ui auto-generated primitives (do not manually edit)
+  - `ui/` — shadcn/ui primitives: prefer adding or scaffolding via the shadcn CLI; **manual edits are allowed** when matching existing patterns (`cn()` from `lib/utils`, `data-slot` attributes, Radix usage)
 - Do NOT create a `common/` or `buttons/` folder; use `shared/` instead
 - Keep files focused on a single responsibility
 - Use `index.ts` files for barrel exports where appropriate
