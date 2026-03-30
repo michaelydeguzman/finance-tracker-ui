@@ -7,10 +7,11 @@
 **Goal:** Must-have standards locked: server/client boundaries, feature colocation, semantic Tailwind tokens, theming + Toaster (shadcn wrapper inside ThemeProvider). Implement fixes and align docs.
 **Requirements:** See `1000-CONTEXT.md` (must-have); extend later for should-have/nice-have.
 **Depends on:** (none)
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 1000 to break down)
+- [ ] `1000-01-PLAN.md` — Root layout: Toaster inside ThemeProvider (`@/components/ui/sonner`)
+- [ ] `1000-02-PLAN.md` — AGENTS + copilot-instructions alignment (D-03–D-07, D-05)
 
 ## Backlog
 
