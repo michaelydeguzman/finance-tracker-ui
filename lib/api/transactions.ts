@@ -1,3 +1,7 @@
+/**
+ * Transaction API — client calls go to Next.js `/api/transactions/*` routes
+ * (same pattern as `lib/api/categories.ts`).
+ */
 import type { CategoryType } from "@/types/shared/enums";
 import { TRANSACTION_ENDPOINTS } from "@/lib/api/endpoints";
 import { apiFetch } from "@/lib/api/config";
