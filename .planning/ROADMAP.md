@@ -4,8 +4,8 @@
 
 ### Phase 1000: Cleanup ui coding standards. Find what is messy and let's discuss
 
-**Goal:** [To be planned]
-**Requirements:** TBD
+**Goal:** Must-have standards locked: server/client boundaries, feature colocation, semantic Tailwind tokens, theming + Toaster (shadcn wrapper inside ThemeProvider). Implement fixes and align docs.
+**Requirements:** See `1000-CONTEXT.md` (must-have); extend later for should-have/nice-have.
 **Depends on:** (none)
 **Plans:** 0 plans
 
