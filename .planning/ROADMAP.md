@@ -34,3 +34,14 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 1002: Dashboard analytics: bar (income, expenses, savings), pie (expense/income by category), monthly averages, period presets + custom range; mock data from Transaction model first; API query-param filtering assumed later
+
+**Goal:** Dashboard with bar (income, expenses, savings), pies (income/expense by category), monthly averages, and period presets + custom range; mock `Transaction` data first; future API filters via query params.
+**Requirements:** See `1002-CONTEXT.md` in phase directory
+**Depends on:** Phase 1001
+**Plans:** 2 plans
+
+Plans:
+- [ ] `1002-01-PLAN.md` — Verify mock dashboard vs CONTEXT + UAT doc
+- [ ] `1002-02-PLAN.md` — Deferred API query-param contract + client URL builder
