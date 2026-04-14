@@ -34,8 +34,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { CategoryType } from "@/types/shared/enums";
-import { createMockDashboardTransactions } from "@/components/dashboard/mock-transactions";
+import type { Transaction } from "@/app/transactions/types/transaction.model";
+import { getTransactions } from "@/lib/api/transactions";
 import {
   type DashboardPeriodPreset,
   resolvePeriodRange,
@@ -90,13 +92,14 @@ function parseDateInput(s: string): Date | null {
 
 export default function DashboardClient(): React.ReactNode {
   const [mockNow] = React.useState(() => new Date());
+  const [transactions, setTransactions] = React.useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [dataSource, setDataSource] = React.useState<
+    "live" | "unavailable"
+  >("live");
 
-  const transactions = React.useMemo(
-    () => createMockDashboardTransactions(mockNow),
-    [mockNow],
-  );
-
-  const [preset, setPreset] = React.useState<DashboardPeriodPreset>("last_3_months");
+  const [preset, setPreset] =
+    React.useState<DashboardPeriodPreset>("last_3_months");
   const [customStartStr, setCustomStartStr] = React.useState(() =>
     toDateInputValue(
       resolvePeriodRange("last_3_months", mockNow, null, null)?.start ??
@@ -115,12 +118,56 @@ export default function DashboardClient(): React.ReactNode {
     return resolvePeriodRange(preset, mockNow, cs, ce);
   }, [customEndStr, customStartStr, mockNow, preset]);
 
+  React.useEffect(() => {
+    const controller = new AbortController();
+    const cs = parseDateInput(customStartStr);
+    const ce = parseDateInput(customEndStr);
+    const resolvedRange = resolvePeriodRange(preset, mockNow, cs, ce);
+
+    setIsLoading(true);
+    void (async () => {
+      try {
+        const rows =
+          resolvedRange === null
+            ? await getTransactions(undefined, { signal: controller.signal })
+            : await getTransactions(
+                {
+                  from: resolvedRange.start.toISOString(),
+                  to: resolvedRange.end.toISOString(),
+                },
+                { signal: controller.signal },
+              );
+        if (controller.signal.aborted) {
+          return;
+        }
+        setTransactions(rows);
+        setDataSource("live");
+      } catch {
+        if (controller.signal.aborted) {
+          return;
+        }
+        toast.error("Could not load transactions.");
+        setTransactions([]);
+        setDataSource("unavailable");
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => controller.abort();
+  }, [customEndStr, customStartStr, mockNow, preset]);
+
   const filtered = React.useMemo(
     () => filterTransactionsByRange(transactions, range),
     [range, transactions],
   );
 
-  const barData = React.useMemo(() => barChartDataFromTotals(filtered), [filtered]);
+  const barData = React.useMemo(
+    () => barChartDataFromTotals(filtered),
+    [filtered],
+  );
   const expensePie = React.useMemo(
     () => pieByCategory(filtered, CategoryType.Expense),
     [filtered],
@@ -232,10 +279,12 @@ export default function DashboardClient(): React.ReactNode {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Monthly average expenses</CardTitle>
+            <CardTitle className="text-base">
+              Monthly average expenses
+            </CardTitle>
             <CardDescription>
-              Total expenses divided by {months} month{months === 1 ? "" : "s"} in
-              range
+              Total expenses divided by {months} month{months === 1 ? "" : "s"}{" "}
+              in range
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -254,8 +303,15 @@ export default function DashboardClient(): React.ReactNode {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={barChartConfig} className="aspect-auto h-[280px] w-full">
-            <BarChart data={barData} accessibilityLayer margin={{ left: 8, right: 8 }}>
+          <ChartContainer
+            config={barChartConfig}
+            className="aspect-auto h-[280px] w-full"
+          >
+            <BarChart
+              data={barData}
+              accessibilityLayer
+              margin={{ left: 8, right: 8 }}
+            >
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="label"
@@ -280,10 +336,7 @@ export default function DashboardClient(): React.ReactNode {
               />
               <Bar dataKey="value" radius={6}>
                 {barData.map((row, i) => (
-                  <Cell
-                    key={row.label}
-                    fill={`var(--chart-${(i % 5) + 1})`}
-                  />
+                  <Cell key={row.label} fill={`var(--chart-${(i % 5) + 1})`} />
                 ))}
               </Bar>
             </BarChart>
@@ -373,8 +426,11 @@ export default function DashboardClient(): React.ReactNode {
       </div>
 
       <p className="text-muted-foreground text-xs">
-        Demo data only. A future API will accept date query parameters matching
-        the selected period.
+        {isLoading
+          ? "Loading transactions…"
+          : dataSource === "live"
+            ? "Live data from your transactions."
+            : "API unavailable — showing no data."}
       </p>
     </div>
   );

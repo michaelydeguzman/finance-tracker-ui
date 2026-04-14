@@ -5,8 +5,6 @@
  *   the standard `ApiResponse<T>` envelope returned by our Next.js route handlers.
  */
 
-import type { ApiResponse } from "@/types/shared/api-response";
-
 /**
  * Generic fetch wrapper that handles the standard ApiResponse envelope.
  *
@@ -47,13 +45,25 @@ export async function apiFetch<T>(
     return undefined as T;
   }
 
-  const json = (await response.json()) as ApiResponse<T>;
+  const json: unknown = await response.json();
 
-  // Some endpoints (e.g. DELETE) return { message: "..." } without a success
-  // field. If the HTTP status was ok and success is absent, treat as success.
-  if (json.success === false) {
-    throw new Error(json.message ?? "An unknown error occurred.");
+  if (Array.isArray(json)) {
+    return json as T;
   }
 
-  return (json.data ?? undefined) as T;
+  if (json !== null && typeof json === "object") {
+    const o = json as {
+      success?: boolean;
+      message?: string | null;
+      data?: unknown;
+    };
+    if (o.success === false) {
+      throw new Error(o.message ?? "An unknown error occurred.");
+    }
+    if ("data" in o) {
+      return o.data as T;
+    }
+  }
+
+  return json as T;
 }

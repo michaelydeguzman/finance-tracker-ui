@@ -143,4 +143,4 @@ Executors and planners align with:
 
 ---
 
-*Convention analysis: 2026-03-29*
+_Convention analysis: 2026-03-29_

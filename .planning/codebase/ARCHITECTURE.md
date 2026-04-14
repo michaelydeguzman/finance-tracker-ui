@@ -119,4 +119,4 @@
 
 ---
 
-*Architecture analysis: 2026-03-29*
+_Architecture analysis: 2026-03-29_

@@ -2,8 +2,12 @@
  * Transaction API — client calls go to Next.js `/api/transactions/*` routes
  * (same pattern as `lib/api/categories.ts`).
  */
-import type { CategoryType } from "@/types/shared/enums";
-import { TRANSACTION_ENDPOINTS } from "@/lib/api/endpoints";
+import { CategoryType } from "@/types/shared/enums";
+import {
+  TRANSACTION_ENDPOINTS,
+  transactionListUrl,
+  type TransactionListQuery,
+} from "@/lib/api/endpoints";
 import { apiFetch } from "@/lib/api/config";
 import type { Transaction } from "@/app/transactions/types/transaction.model";
 import type {
@@ -13,9 +17,24 @@ import type {
 
 const mapTransaction = (transaction: TransactionResponse): Transaction => ({
   ...transaction,
+  // Backend may serialize enums as numbers ("0"), names ("Income"), etc.
+  // Normalize so dashboard comparisons against `CategoryType` work reliably.
+  categoryType: (() => {
+    const raw = transaction.categoryType as unknown;
+    if (typeof raw === "string") {
+      const s = raw.trim().toLowerCase();
+      if (s === "income") return CategoryType.Income;
+      if (s === "expense") return CategoryType.Expense;
+      return Number(raw) as CategoryType;
+    }
+    return Number(raw) as CategoryType;
+  })(),
+  amount: Number(transaction.amount),
   transactionDate: new Date(transaction.transactionDate),
   createdAt: new Date(transaction.createdAt),
 });
+
+export type { TransactionListQuery };
 
 export const createTransaction = async (
   payload: UpsertTransactionRequest,
@@ -28,10 +47,13 @@ export const createTransaction = async (
     }),
   );
 
-export const getTransactions = async (): Promise<Transaction[]> =>
-  (await apiFetch<TransactionResponse[]>(TRANSACTION_ENDPOINTS.list)).map(
-    mapTransaction,
-  );
+export const getTransactions = async (
+  query?: TransactionListQuery,
+  init?: RequestInit,
+): Promise<Transaction[]> =>
+  (
+    await apiFetch<TransactionResponse[]>(transactionListUrl(query), init)
+  ).map(mapTransaction);
 
 export const getTransaction = async (id: string): Promise<Transaction> =>
   mapTransaction(
@@ -40,12 +62,8 @@ export const getTransaction = async (id: string): Promise<Transaction> =>
 
 export const getTransactionsByType = async (
   type: CategoryType,
-): Promise<Transaction[]> =>
-  (
-    await apiFetch<TransactionResponse[]>(
-      TRANSACTION_ENDPOINTS.byCategoryType(type),
-    )
-  ).map(mapTransaction);
+  init?: RequestInit,
+): Promise<Transaction[]> => getTransactions({ categoryType: type }, init);
 
 export const updateTransaction = async (
   id: string,

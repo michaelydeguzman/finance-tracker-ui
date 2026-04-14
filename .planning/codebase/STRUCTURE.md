@@ -164,4 +164,4 @@ finance-tracker-ui/
 
 ---
 
-*Structure analysis: 2026-03-29*
+_Structure analysis: 2026-03-29_

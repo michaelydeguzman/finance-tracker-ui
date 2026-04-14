@@ -130,4 +130,4 @@ Document any threshold in `jest.config` or CI only after stakeholders agree.
 
 ---
 
-*Testing analysis: 2026-03-29*
+_Testing analysis: 2026-03-29_

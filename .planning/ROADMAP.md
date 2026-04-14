@@ -43,5 +43,5 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] `1002-01-PLAN.md` — Verify mock dashboard vs CONTEXT + UAT doc
-- [ ] `1002-02-PLAN.md` — Deferred API query-param contract + client URL builder
+- [x] `1002-01-PLAN.md` — BFF `from`/`to`, client `getTransactions`, dashboard live + mock fallback, `1002-UAT.md`
+- [x] `1002-02-PLAN.md` — Extended list query (`categoryIds`, `page`, `pageSize`) + client `transactionListUrl`

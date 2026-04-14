@@ -13,4 +13,6 @@
 - Phase 1001 UAT complete: `1001-UAT.md` — 4/4 passed
 - Phase 1001 shipped (open PR): branch `gsd/phase-1001-complete-income-and-expense-transaction-crud-pr` → https://github.com/michaelydeguzman/finance-tracker-ui/compare/main...gsd/phase-1001-complete-income-and-expense-transaction-crud-pr
 - Phase 1002 added: Dashboard analytics (bar + dual pies + monthly averages + period presets/custom; mock data first; API query-param filtering assumed later) — see `1002-CONTEXT.md` under `.planning/phases/1002-dashboard-*`
-- Phase 1002 planned: `1002-01-PLAN.md`, `1002-02-PLAN.md` (ready for `/gsd-execute-phase`)
+- Phase 1002 planned: `1002-RESEARCH.md`, `1002-VALIDATION.md`, `1002-01-PLAN.md`, `1002-02-PLAN.md`, `1002-UAT.md` (draft) — ready for `/gsd-execute-phase 1002`
+- Phase 1002 executed: `1002-01-SUMMARY.md`, `1002-02-SUMMARY.md` — dashboard live API + `from`/`to`/`categoryIds`/paging list contract; run `1002-UAT.md` for sign-off
+- Phase 1002 context gathered: `.planning/phases/1002-dashboard-analytics/1002-CONTEXT.md` (API-backed dashboard with mock fallback)
