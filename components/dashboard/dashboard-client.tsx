@@ -378,7 +378,14 @@ export default function DashboardClient(): React.ReactNode {
                     paddingAngle={2}
                     strokeWidth={1}
                   />
-                  <Legend content={<ChartLegendContent nameKey="name" />} />
+                  <Legend
+                    content={
+                      <ChartLegendContent
+                        nameKey="name"
+                        className="max-h-24 flex-wrap gap-x-4 gap-y-2 overflow-auto px-1"
+                      />
+                    }
+                  />
                 </PieChart>
               </ChartContainer>
             )}
@@ -417,7 +424,14 @@ export default function DashboardClient(): React.ReactNode {
                     paddingAngle={2}
                     strokeWidth={1}
                   />
-                  <Legend content={<ChartLegendContent nameKey="name" />} />
+                  <Legend
+                    content={
+                      <ChartLegendContent
+                        nameKey="name"
+                        className="max-h-24 flex-wrap gap-x-4 gap-y-2 overflow-auto px-1"
+                      />
+                    }
+                  />
                 </PieChart>
               </ChartContainer>
             )}

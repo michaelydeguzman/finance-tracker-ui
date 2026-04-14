@@ -95,7 +95,7 @@ export function TransactionEntryList({
     <div className="space-y-8">
       {Object.entries(groupedEntries).map(([key, dailyEntries]) => (
         <section key={key} className="space-y-3">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+          <div className="text-[17px] font-semibold text-muted-foreground">
             {formatDateLabel(key)}
           </div>
           <div className="space-y-4">
@@ -107,7 +107,9 @@ export function TransactionEntryList({
                     "bg-muted/60 hover:bg-muted/90",
                   )}
                 >
-                  <div className={cn("rounded-full p-3 shrink-0", iconClassName)}>
+                  <div
+                    className={cn("rounded-full p-3 shrink-0", iconClassName)}
+                  >
                     {icon}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -190,4 +192,3 @@ export function TransactionEntryList({
     </div>
   );
 }
-

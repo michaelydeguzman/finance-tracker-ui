@@ -58,8 +58,7 @@ export function AddTransactionDialog({
 }: AddTransactionDialogProps) {
   const income = useIncomeCategories();
   const expense = useExpenseCategories();
-  const categoryState =
-    categoryType === CategoryType.Income ? income : expense;
+  const categoryState = categoryType === CategoryType.Income ? income : expense;
 
   const categories =
     categoryType === CategoryType.Income
@@ -156,7 +155,8 @@ export function AddTransactionDialog({
         categoryName,
         amount: numericAmount,
         transactionDate,
-        frequencyId: isEdit && transaction ? (transaction.frequencyId ?? null) : null,
+        frequencyId:
+          isEdit && transaction ? (transaction.frequencyId ?? null) : null,
         frequencyName:
           isEdit && transaction ? (transaction.frequencyName ?? null) : null,
         createdBy:
@@ -209,18 +209,6 @@ export function AddTransactionDialog({
 
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Name</label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={
-                categoryType === CategoryType.Income ? "Salary" : "Groceries"
-              }
-              autoFocus
-            />
-          </div>
-
-          <div className="grid gap-2">
             <label className="text-sm font-medium">Category</label>
             <Select
               value={categoryId}
@@ -251,6 +239,17 @@ export function AddTransactionDialog({
               </div>
             )}
           </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={
+                categoryType === CategoryType.Income ? "Salary" : "Groceries"
+              }
+              autoFocus
+            />
+          </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
@@ -276,7 +275,9 @@ export function AddTransactionDialog({
           </div>
 
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Description (optional)</label>
+            <label className="text-sm font-medium">
+              Description (optional)
+            </label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
