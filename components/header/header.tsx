@@ -7,7 +7,6 @@ import { Separator } from "../ui/separator";
 import { SidebarTrigger } from "../ui/sidebar";
 import UserHeader from "./user";
 import { ROUTES } from "@/routes";
-import { MouseEvent } from "react";
 import { Route } from "@/types/app";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -18,8 +17,6 @@ export default function Header() {
   const handleNavClick = (route: Route) => {
     router.push(route.url);
   };
-
-  const activePage = router;
 
   return (
     <div className="w-full sticky top-0 h-20 flex justify-between items-center bg-white z-10 px-[80px]">
