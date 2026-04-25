@@ -1,47 +1,21 @@
 # Roadmap
 
-## Current milestone
+## Milestones
 
-### Phase 1000: Cleanup ui coding standards. Find what is messy and let's discuss
+- ✅ **v1.0 MVP** — Phases 1000–1003 (shipped 2026-04-25) — [archive](.planning/milestones/v1.0-ROADMAP.md)
 
-**Goal:** Must-have standards locked: server/client boundaries, feature colocation, semantic Tailwind tokens, theming + Toaster (shadcn wrapper inside ThemeProvider). Implement fixes and align docs.
-**Requirements:** See `1000-CONTEXT.md` (must-have); extend later for should-have/nice-have.
-**Depends on:** (none)
-**Plans:** 2 plans
+## Phases
 
-Plans:
-- [x] `1000-01-PLAN.md` — Root shell: ThemeProvider + `@/components/ui/sonner`
-- [x] `1000-02-PLAN.md` — Agent docs: copilot-instructions + `finance-tracker-agents.mdc`
+<details>
+<summary>✅ v1.0 MVP (Phases 1000–1003) — SHIPPED 2026-04-25</summary>
 
-### Phase 1001: Complete income and expense transaction CRUD
+- [x] Phase 1000: UI coding standards cleanup (2/2 plans) — completed 2026-04-18
+- [x] Phase 1001: Income/expense transaction CRUD — edit + delete (2/2 plans) — completed 2026-04-18
+- [x] Phase 1002: Dashboard analytics — bar/pie charts, period presets (2/2 plans) — completed 2026-04-18
+- [x] Phase 1003: Login and signup pages — auth route group + BFF stubs (2/2 plans) — completed 2026-04-25
 
-**Goal:** Expose full CRUD on `/income` and `/expenses`: users can **edit** existing transactions and **delete** with an explicit confirmation step, using existing `lib/api/transactions` + `useTransactions` optimistic updates and shadcn/ui patterns.
-**Requirements:** TBD
-**Depends on:** (none)
-**Plans:** 2 plans
+</details>
 
-Plans:
-- [x] `1001-01-PLAN.md` — Transaction PUT/DELETE API parity (category pattern) + AlertDialog + hook + edit/delete shared components
-- [x] `1001-02-PLAN.md` — Income/expense lists + clients wiring
+## Next Milestone
 
-## Backlog
-
-### Phase 999.1: Implement login (BACKLOG)
-
-**Goal:** Captured for future planning — user authentication / login flow for the finance tracker.
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
-### Phase 1002: Dashboard analytics: bar (income, expenses, savings), pie (expense/income by category), monthly averages, period presets + custom range; mock data from Transaction model first; API query-param filtering assumed later
-
-**Goal:** Dashboard with bar (income, expenses, savings), pies (income/expense by category), monthly averages, and period presets + custom range; mock `Transaction` data first; future API filters via query params.
-**Requirements:** See `1002-CONTEXT.md` in phase directory
-**Depends on:** Phase 1001
-**Plans:** 2 plans
-
-Plans:
-- [x] `1002-01-PLAN.md` — BFF `from`/`to`, client `getTransactions`, dashboard live + mock fallback, `1002-UAT.md`
-- [x] `1002-02-PLAN.md` — Extended list query (`categoryIds`, `page`, `pageSize`) + client `transactionListUrl`
+_Start fresh with `/gsd-new-milestone`_
