@@ -4,7 +4,7 @@ import { CategoryType } from "@/types/shared/enums";
 import {
   useTransactions,
   type TransactionInput as IncomeTransactionInput,
-} from "../../transactions/hooks/use-transactions";
+} from "../../../transactions/hooks/use-transactions";
 
 export function useIncomeTransactions() {
   const {

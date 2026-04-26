@@ -1,5 +1,5 @@
 import { Calendar, House, Inbox, Settings } from "lucide-react";
-import Home from "./app/page";
+import Home from "./app/(app)/page";
 import { Route } from "./types/app";
 
 export const ROUTES = [

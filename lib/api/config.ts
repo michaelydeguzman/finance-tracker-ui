@@ -28,8 +28,11 @@ export async function apiFetch<T>(
     let message = fallback;
 
     try {
-      const body = (await response.json()) as { error?: string };
-      message = body?.error ?? fallback;
+      const body = (await response.json()) as {
+        error?: string;
+        message?: string;
+      };
+      message = body?.error ?? body?.message ?? fallback;
     } catch {
       /* body wasn't JSON — keep fallback */
     }

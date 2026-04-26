@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useSortableData } from "@/hooks/useSortableData";
 import { EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Category } from "@/app/categories/types/category.model";
+import { Category } from "@/app/(app)/categories/types/category.model";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 

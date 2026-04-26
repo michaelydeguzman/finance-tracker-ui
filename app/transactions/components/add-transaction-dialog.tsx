@@ -21,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useIncomeCategories } from "@/app/categories/hooks/use-income-categories";
-import { useExpenseCategories } from "@/app/categories/hooks/use-expense-categories";
+import { useIncomeCategories } from "@/app/(app)/categories/hooks/use-income-categories";
+import { useExpenseCategories } from "@/app/(app)/categories/hooks/use-expense-categories";
 import type { Transaction } from "../types/transaction.model";
 import type { TransactionInput } from "../hooks/use-transactions";
 

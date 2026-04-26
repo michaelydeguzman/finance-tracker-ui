@@ -2,7 +2,7 @@
 
 import { ReceiptTextIcon } from "lucide-react";
 import type { ExpenseEntry } from "../types/expense.model";
-import { TransactionEntryList } from "../../transactions/components/transaction-entry-list";
+import { TransactionEntryList } from "../../../transactions/components/transaction-entry-list";
 
 interface ExpenseListProps {
   entries: ExpenseEntry[];

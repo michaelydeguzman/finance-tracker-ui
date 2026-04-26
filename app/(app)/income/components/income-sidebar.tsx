@@ -3,7 +3,7 @@ import StickyRightSidebar from "@/components/layout/sticky-right-sidebar";
 import type {
   TransactionSummaryItem,
   QuickActionItem,
-} from "../../transactions/types/transaction.model";
+} from "../../../transactions/types/transaction.model";
 
 interface IncomeSidebarProps {
   summary: TransactionSummaryItem[];

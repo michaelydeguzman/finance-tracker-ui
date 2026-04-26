@@ -1,8 +1,8 @@
 "use client";
 
 import { WalletIcon } from "lucide-react";
-import type { TransactionEntry } from "../../transactions/types/transaction.model";
-import { TransactionEntryList } from "../../transactions/components/transaction-entry-list";
+import type { TransactionEntry } from "../../../transactions/types/transaction.model";
+import { TransactionEntryList } from "../../../transactions/components/transaction-entry-list";
 
 interface IncomeListProps {
   entries: TransactionEntry[];

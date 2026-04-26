@@ -1,10 +1,9 @@
-import { CategoryType } from "@/types/shared/enums";
 import type {
-  Transaction,
+  TransactionEntry,
   TransactionSummaryItem,
   QuickActionItem,
-  TransactionEntry,
-} from "../../transactions/types/transaction.model";
+  Transaction,
+} from "../../../transactions/types/transaction.model";
 
 const DISPLAY_CURRENCY = "CAD";
 
@@ -18,7 +17,7 @@ const formatCurrency = (value: number) =>
 const getMonthKey = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
-export const buildExpenseEntries = (
+export const buildIncomeEntries = (
   transactions: Transaction[],
 ): TransactionEntry[] =>
   transactions.map((transaction) => ({
@@ -31,7 +30,7 @@ export const buildExpenseEntries = (
     date: transaction.transactionDate.toISOString(),
   }));
 
-export const buildExpenseSummary = (
+export const buildIncomeSummary = (
   transactions: Transaction[],
 ): TransactionSummaryItem[] => {
   const monthlyTotals = transactions.reduce<Record<string, number>>(
@@ -80,20 +79,20 @@ export const buildExpenseSummary = (
   ];
 };
 
-export const buildExpenseQuickActions = (
-  callbacks?: Partial<Record<"add-expense" | "export", () => void>>,
+export const buildIncomeQuickActions = (
+  callbacks?: Partial<Record<"add-income" | "export", () => void>>,
 ): QuickActionItem[] => [
   {
-    id: "add-expense",
-    label: "Add Expense",
+    id: "add-income",
+    label: "Add Income",
     description: "Wire this to your income form",
     icon: "add",
-    callback: callbacks?.["add-expense"] ?? (() => undefined),
+    callback: callbacks?.["add-income"] ?? (() => undefined),
   },
   {
     id: "export",
     label: "Export Data",
-    description: "Download the current expense dataset",
+    description: "Download the current income dataset",
     icon: "export",
     callback: callbacks?.export ?? (() => undefined),
   },
