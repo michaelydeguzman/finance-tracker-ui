@@ -1,13 +1,8 @@
 import type { UpsertTransactionRequest } from "@/app/transactions/types/transaction.api";
-import { CategoryType } from "@/types/shared/enums";
+import type { CategoryType } from "@/types/shared/enums";
 
-/** UUID string (8-4-4-4-12 hex), case-insensitive. */
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export function isUuidString(value: string): boolean {
-  return UUID_RE.test(value);
-}
+/** Upper bound so a caller cannot ask the backend for an unbounded page. */
+export const MAX_PAGE_SIZE = 200;
 
 /**
  * Parses a required positive integer query param, or returns a 400 Response.
@@ -15,19 +10,29 @@ export function isUuidString(value: string): boolean {
 export function parsePositiveIntParam(
   raw: string,
   name: string,
+  max?: number,
 ): number | Response {
   const n = Number(raw);
+
   if (!Number.isInteger(n) || n < 1) {
     return Response.json(
       { error: `${name} must be a positive integer.` },
       { status: 400 },
     );
   }
+
+  if (max !== undefined && n > max) {
+    return Response.json(
+      { error: `${name} must be ${max} or less.` },
+      { status: 400 },
+    );
+  }
+
   return n;
 }
 
 export type BackendTransactionListParamsInput = {
-  categoryType: number | null;
+  categoryType: CategoryType | undefined;
   from: string | null;
   to: string | null;
   /** Each id forwarded as its own `categoryIds` key (ASP.NET model binding). */
@@ -40,7 +45,8 @@ export function buildBackendTransactionListSearchParams(
   input: BackendTransactionListParamsInput,
 ): URLSearchParams {
   const params = new URLSearchParams();
-  if (input.categoryType !== null) {
+
+  if (input.categoryType !== undefined) {
     params.set("categoryType", String(input.categoryType));
   }
   if (input.from !== null && input.to !== null) {
@@ -54,23 +60,30 @@ export function buildBackendTransactionListSearchParams(
     params.set("page", String(input.page));
     params.set("pageSize", String(input.pageSize));
   }
+
   return params;
 }
+
+/**
+ * Accepts a `Date` or an ISO-8601 date / date-time string.
+ *
+ * The shape is checked before parsing because `new Date()` accepts a lot of
+ * loose input — `new Date("5")` is a valid date in V8 — which would send
+ * nonsense through to the backend.
+ */
+const ISO_DATE_RE =
+  /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
 
 export function isValidTransactionDate(value: unknown): value is string | Date {
   if (value instanceof Date) {
     return !Number.isNaN(value.getTime());
   }
 
-  if (typeof value !== "string") {
+  if (typeof value !== "string" || !ISO_DATE_RE.test(value.trim())) {
     return false;
   }
 
   return !Number.isNaN(new Date(value).getTime());
-}
-
-export function isValidCategoryTypeValue(value: number): value is CategoryType {
-  return Object.values(CategoryType).includes(value as CategoryType);
 }
 
 /**
@@ -92,7 +105,7 @@ export function buildNormalizedTransactionUpsertBody(
   const transactionDate =
     rawDate instanceof Date
       ? rawDate.toISOString()
-      : new Date(rawDate as string).toISOString();
+      : new Date(rawDate).toISOString();
 
   return {
     name: body.name!.trim(),
@@ -106,4 +119,40 @@ export function buildNormalizedTransactionUpsertBody(
     transactionDate,
     createdBy: body.createdBy!.trim(),
   };
+}
+
+/** Shared body validation for transaction create/update. */
+export function validateTransactionBody(
+  body: Partial<UpsertTransactionRequest>,
+): Response | null {
+  if (!body?.name?.trim()) {
+    return Response.json({ error: "Name is required." }, { status: 400 });
+  }
+
+  if (!body?.categoryId?.trim()) {
+    return Response.json(
+      { error: "Category id is required." },
+      { status: 400 },
+    );
+  }
+
+  if (!Number.isFinite(body?.amount) || Number(body.amount) <= 0) {
+    return Response.json(
+      { error: "Amount must be greater than zero." },
+      { status: 400 },
+    );
+  }
+
+  if (!isValidTransactionDate(body?.transactionDate)) {
+    return Response.json(
+      { error: "Transaction date is invalid." },
+      { status: 400 },
+    );
+  }
+
+  if (!body?.createdBy?.trim()) {
+    return Response.json({ error: "Created by is required." }, { status: 400 });
+  }
+
+  return null;
 }

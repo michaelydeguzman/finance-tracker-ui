@@ -1,15 +1,24 @@
 import PageTitle from "@/components/shared/page-title";
-import ExpenseCategoryList from "./components/expense-categories";
-import IncomeCategoryList from "./components/income-categories";
+import { DEFAULT_HOUSEHOLD_NAME } from "@/constants";
+import { CategoryType } from "@/types/shared/enums";
+import CategorySection from "./components/category-section";
+
+export const metadata = { title: "Categories" };
 
 export default function Categories() {
   return (
     <>
-      <PageTitle title="Categories" subtitle="De Guzman Household" />
+      <PageTitle title="Categories" subtitle={DEFAULT_HOUSEHOLD_NAME} />
 
-      <div className="w-full flex justify-between gap-8">
-        <IncomeCategoryList />
-        <ExpenseCategoryList />
+      <div className="flex w-full flex-col justify-between gap-8 lg:flex-row">
+        <CategorySection
+          categoryType={CategoryType.Income}
+          label="Income Categories"
+        />
+        <CategorySection
+          categoryType={CategoryType.Expense}
+          label="Expense Categories"
+        />
       </div>
     </>
   );

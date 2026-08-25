@@ -23,6 +23,17 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const response = await fetch(url, options);
 
+  // The session expired or was revoked mid-session. Bounce to sign-in rather
+  // than letting every caller surface its own confusing "unauthorized" toast.
+  if (response.status === 401 && typeof window !== "undefined") {
+    const returnTo = `${window.location.pathname}${window.location.search}`;
+    // A hard navigation on purpose: the session is gone, so client caches and
+    // in-memory state should be discarded rather than carried into /login.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.href = `/login?callbackUrl=${encodeURIComponent(returnTo)}`;
+    throw new Error("Your session has expired. Please sign in again.");
+  }
+
   if (!response.ok) {
     const fallback = `Request failed (${response.status})`;
     let message = fallback;

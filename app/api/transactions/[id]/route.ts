@@ -1,38 +1,40 @@
 import type { UpsertTransactionRequest } from "@/app/transactions/types/transaction.api";
 import {
+  callBackend,
+  isUuid,
+  requireJsonContentType,
+  requireSession,
+  routeError,
+} from "@/lib/server/backend";
+import {
   buildNormalizedTransactionUpsertBody,
-  isValidTransactionDate,
+  validateTransactionBody,
 } from "../common/utils";
 
-const API_URL = process.env.API_URL;
+const invalidId = () =>
+  Response.json(
+    { error: "A valid transaction id is required." },
+    { status: 400 },
+  );
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const unauthorized = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const { id } = await context.params;
+    if (!isUuid(id)) return invalidId();
 
-    if (!id?.trim()) {
-      return Response.json({ error: "Id is required." }, { status: 400 });
-    }
+    const result = await callBackend(
+      `/v1/transactions/${encodeURIComponent(id)}`,
+    );
 
-    const response = await fetch(`${API_URL}/v1/transactions/${id}`);
-
-    if (!response.ok) {
-      const text = await response.text();
-      return Response.json(
-        { error: text || "Backend request failed." },
-        { status: response.status },
-      );
-    }
-
-    const data = await response.json();
-    return Response.json(data);
+    return result.ok ? Response.json(result.data) : result.response;
   } catch (reason) {
-    const message =
-      reason instanceof Error ? reason.message : "Unexpected server error.";
-    return Response.json({ error: message }, { status: 500 });
+    return routeError("GET /api/transactions/[id]", reason);
   }
 }
 
@@ -40,76 +42,35 @@ export async function PUT(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  if (!request.headers.get("content-type")?.includes("application/json")) {
-    return Response.json(
-      { error: "Content-Type must be application/json." },
-      { status: 415 },
-    );
-  }
+  const unauthorized = await requireSession();
+  if (unauthorized) return unauthorized;
+
+  const wrongContentType = requireJsonContentType(request);
+  if (wrongContentType) return wrongContentType;
 
   try {
     const { id } = await context.params;
-
-    if (!id?.trim()) {
-      return Response.json({ error: "Id is required." }, { status: 400 });
-    }
+    if (!isUuid(id)) return invalidId();
 
     const body = (await request.json()) as Partial<UpsertTransactionRequest>;
 
-    if (!body?.name?.trim()) {
-      return Response.json({ error: "Name is required." }, { status: 400 });
-    }
+    const invalid = validateTransactionBody(body);
+    if (invalid) return invalid;
 
-    if (!body?.categoryId?.trim()) {
-      return Response.json(
-        { error: "Category id is required." },
-        { status: 400 },
-      );
-    }
+    const result = await callBackend(
+      `/v1/transactions/${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildNormalizedTransactionUpsertBody(body)),
+      },
+    );
 
-    if (!Number.isFinite(body?.amount) || Number(body.amount) <= 0) {
-      return Response.json(
-        { error: "Amount must be greater than zero." },
-        { status: 400 },
-      );
-    }
-
-    if (!isValidTransactionDate(body?.transactionDate)) {
-      return Response.json(
-        { error: "Transaction date is invalid." },
-        { status: 400 },
-      );
-    }
-
-    if (!body?.createdBy?.trim()) {
-      return Response.json(
-        { error: "Created by is required." },
-        { status: 400 },
-      );
-    }
-
-    const normalized = buildNormalizedTransactionUpsertBody(body);
-
-    const response = await fetch(`${API_URL}/v1/transactions/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(normalized),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      return Response.json(
-        { error: text || "Backend request failed." },
-        { status: response.status },
-      );
-    }
-
-    const data = await response.json();
-    return Response.json(data, { status: 200 });
+    return result.ok
+      ? Response.json(result.data, { status: 200 })
+      : result.response;
   } catch (reason) {
-    const message =
-      reason instanceof Error ? reason.message : "Unexpected server error.";
-    return Response.json({ error: message }, { status: 500 });
+    return routeError("PUT /api/transactions/[id]", reason);
   }
 }
 
@@ -117,33 +78,22 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const unauthorized = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const { id } = await context.params;
+    if (!isUuid(id)) return invalidId();
 
-    if (!id?.trim()) {
-      return Response.json({ error: "Id is required." }, { status: 400 });
-    }
-
-    const response = await fetch(`${API_URL}/v1/transactions/${id}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      return Response.json(
-        { error: text || "Backend request failed." },
-        { status: response.status },
-      );
-    }
-
-    return Response.json(
-      { message: "Transaction deleted successfully." },
-      { status: 200 },
+    const result = await callBackend(
+      `/v1/transactions/${encodeURIComponent(id)}`,
+      { method: "DELETE" },
     );
+
+    return result.ok
+      ? Response.json({ message: "Transaction deleted successfully." })
+      : result.response;
   } catch (reason) {
-    const message =
-      reason instanceof Error ? reason.message : "Unexpected server error.";
-    return Response.json({ error: message }, { status: 500 });
+    return routeError("DELETE /api/transactions/[id]", reason);
   }
 }

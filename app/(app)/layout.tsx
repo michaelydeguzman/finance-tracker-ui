@@ -1,20 +1,27 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import Header from "@/components/header/header";
 
-export default function AppShellLayout({
+export default async function AppShellLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <SidebarProvider>
-      <main className="w-full flex flex-col min-h-screen justify-center items-center max-w-[1400px] mx-auto">
-        <Header />
+  // The middleware already redirects unauthenticated requests; this second
+  // check means a middleware misconfiguration cannot expose the app shell.
+  const session = await auth();
 
-        <div className="flex flex-col gap-8 flex-grow w-full px-[80px] py-5">
-          {children}
-        </div>
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  return (
+    <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col">
+      <Header />
+
+      <main className="flex w-full flex-grow flex-col gap-8 px-4 py-5 md:px-[80px]">
+        {children}
       </main>
-    </SidebarProvider>
+    </div>
   );
 }

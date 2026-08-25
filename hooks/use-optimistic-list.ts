@@ -59,8 +59,9 @@ export function useOptimisticList<
         setItems((prev) => [...prev, savedItem]);
         toast.success(`${item.name ?? itemLabel} added successfully`);
       } catch (error) {
+        // No rollback needed: useOptimistic discards the optimistic entry when
+        // the transition settles, leaving `items` as the source of truth.
         console.error("Failed to add item:", error);
-        setItems((prev) => [...prev]);
         toast.error(`Failed to add ${itemLabel}.`);
       }
     });
@@ -77,7 +78,6 @@ export function useOptimisticList<
         toast.success(`${updates.name ?? itemLabel} updated successfully`);
       } catch (error) {
         console.error("Failed to update item:", error);
-        setItems((prev) => [...prev]);
         toast.error(`Failed to update ${itemLabel}.`);
       }
     });
@@ -92,7 +92,6 @@ export function useOptimisticList<
         toast.success(`${itemLabel} deleted successfully`);
       } catch (error) {
         console.error("Failed to delete item:", error);
-        setItems((prev) => [...prev]);
         toast.error(`Failed to delete ${itemLabel}.`);
       }
     });

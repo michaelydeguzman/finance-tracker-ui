@@ -1,36 +1,36 @@
-import { Calendar, House, Inbox, Settings } from "lucide-react";
-import Home from "./app/(app)/page";
-import { Route } from "./types/app";
+import {
+  Calendar,
+  House,
+  Inbox,
+  LayoutDashboard,
+  Settings,
+} from "lucide-react";
+import type { Route } from "./types/app";
 
-export const ROUTES = [
+export const ROUTES: readonly Route[] = [
   {
     title: "Dashboard",
     url: "/",
-    icon: Home,
-    color: "",
+    icon: LayoutDashboard,
   },
   {
     title: "Income",
     url: "/income",
     icon: Inbox,
-    color: "",
   },
   {
     title: "Expenses",
     url: "/expenses",
     icon: Calendar,
-    color: "",
   },
   {
     title: "Categories",
     url: "/categories",
     icon: Settings,
-    color: "",
   },
   {
     title: "Households",
     url: "/households",
     icon: House,
-    color: "",
   },
-] as Route[];
+];

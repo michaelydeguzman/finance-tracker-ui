@@ -13,11 +13,6 @@ export const createCategory = async (
     body: JSON.stringify(payload),
   });
 
-export const getCategories = async (id?: string): Promise<Category[]> =>
-  apiFetch<Category[]>(
-    id ? CATEGORY_ENDPOINTS.byId(id) : CATEGORY_ENDPOINTS.list,
-  );
-
 export const getCategoriesByType = async (
   type: CategoryType,
 ): Promise<Category[]> => apiFetch<Category[]>(CATEGORY_ENDPOINTS.byType(type));

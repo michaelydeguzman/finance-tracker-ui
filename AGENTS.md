@@ -15,23 +15,40 @@ This project uses AI coding assistants ("agents") to help with development. Thes
   - Keep components small, focused, and well-named.
   - Prefer hooks for reusable logic.
   - Add error handling around user inputs and API calls.
-  - Add or update tests when changing behavior.
+  - Add or update tests when changing behavior. Tests are Vitest suites in `tests/`; run `npm run test`.
 - When making non-trivial changes:
   - Explain the plan briefly before editing.
   - Apply changes in small, reviewable steps.
   - Run basic checks (build/tests) when possible and report the result.
+
+## Authentication and data access
+
+- Every page and `/api/*` route is behind Auth.js (see `auth.ts`, `middleware.ts`).
+- The .NET backend has **no** auth of its own. Route handlers under `app/api/**`
+  must call `requireSession()` from `lib/server/backend.ts` before proxying.
+- Never forward a backend response body or exception message to the browser —
+  use `callBackend`/`routeError`, which log detail server-side and return a
+  safe message.
+- Validate every path segment and query value before it reaches a backend URL
+  (`isUuid`, `isCategoryType`). Do not interpolate raw request input.
 
 ## How agents should edit code
 
 - Prefer using **existing patterns** and conventions in this repo.
 - Avoid large refactors unless explicitly requested.
 - For UI work:
-  - Use existing shared components in `components/shared/` (e.g., `Card`, `PageTitle`, `SortButton`, `AsyncBoundary`) where possible.
+  - Use existing shared components in `components/shared/` (e.g., `Card`, `PageTitle`, `SortButton`, `ConfirmDeleteDialog`) where possible.
+  - For error states use the route-group boundary (`app/(app)/error.tsx`), not a bespoke wrapper.
+  - Never use `alert()`, `confirm()`, or `prompt()`. Use `sonner` toasts for messages and `ConfirmDeleteDialog` for destructive confirmation.
   - Use shadcn mcp server for available components to keep styling consistent.
   - Use layout primitives from `components/layout/` (e.g., `PageWithSidebar`, `StickyRightSidebar`) for page structure.
   - Do NOT create `common/` or `buttons/` folders — use `shared/` instead.
   - Co-locate feature-specific code under `app/<route>/components/`, `hooks/`, `types/`, `data/`.
   - Keep styling consistent with the rest of the app (Tailwind + shadcn/ui).
+- Income and Expenses share one implementation
+  (`app/transactions/components/transaction-page-client.tsx`) parameterized by
+  `CategoryType`. Differences belong in `app/transactions/config/views.tsx`,
+  not in a duplicated component tree.
 - For new logic or data flow, describe:
   - Inputs / outputs
   - Edge cases considered

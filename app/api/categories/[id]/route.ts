@@ -1,24 +1,32 @@
 import type { UpsertCategoryRequest } from "@/app/(app)/categories/types/category.api";
-import { isValidCategoryType } from "../common/utils";
+import {
+  callBackend,
+  isUuid,
+  requireJsonContentType,
+  requireSession,
+  routeError,
+} from "@/lib/server/backend";
+import { isCategoryType } from "@/lib/category-type";
 
-const API_URL = process.env.API_URL;
+// A factory, not a shared instance: a Response body can only be consumed once.
+const invalidId = () =>
+  Response.json({ error: "A valid category id is required." }, { status: 400 });
 
 export async function PUT(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  if (!request.headers.get("content-type")?.includes("application/json")) {
-    return Response.json(
-      { error: "Content-Type must be application/json." },
-      { status: 415 },
-    );
-  }
+  const unauthorized = await requireSession();
+  if (unauthorized) return unauthorized;
+
+  const wrongContentType = requireJsonContentType(request);
+  if (wrongContentType) return wrongContentType;
 
   try {
     const { id } = await context.params;
 
-    if (!id?.trim()) {
-      return Response.json({ error: "Id is required." }, { status: 400 });
+    if (!isUuid(id)) {
+      return invalidId();
     }
 
     const body = (await request.json()) as Partial<UpsertCategoryRequest>;
@@ -29,33 +37,27 @@ export async function PUT(
       return Response.json({ error: "Name is required." }, { status: 400 });
     }
 
-    if (!isValidCategoryType(categoryType)) {
+    if (!isCategoryType(categoryType)) {
       return Response.json(
         { error: "Category type must be income or expense." },
         { status: 400 },
       );
     }
 
-    const response = await fetch(`${API_URL}/v1/categories/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, categoryType }),
-    });
+    const result = await callBackend(
+      `/v1/categories/${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, categoryType }),
+      },
+    );
 
-    if (!response.ok) {
-      const text = await response.text();
-      return Response.json(
-        { error: text || "Backend request failed." },
-        { status: response.status },
-      );
-    }
-
-    const data = await response.json();
-    return Response.json(data, { status: 200 });
+    return result.ok
+      ? Response.json(result.data, { status: 200 })
+      : result.response;
   } catch (reason) {
-    const message =
-      reason instanceof Error ? reason.message : "Unexpected server error.";
-    return Response.json({ error: message }, { status: 500 });
+    return routeError("PUT /api/categories/[id]", reason);
   }
 }
 
@@ -63,33 +65,25 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const unauthorized = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const { id } = await context.params;
 
-    if (!id?.trim()) {
-      return Response.json({ error: "Id is required." }, { status: 400 });
+    if (!isUuid(id)) {
+      return invalidId();
     }
 
-    const response = await fetch(`${API_URL}/v1/categories/${id}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      return Response.json(
-        { error: text || "Backend request failed." },
-        { status: response.status },
-      );
-    }
-
-    return Response.json(
-      { message: "Category deleted successfully." },
-      { status: 200 },
+    const result = await callBackend(
+      `/v1/categories/${encodeURIComponent(id)}`,
+      { method: "DELETE" },
     );
+
+    return result.ok
+      ? Response.json({ message: "Category deleted successfully." })
+      : result.response;
   } catch (reason) {
-    const message =
-      reason instanceof Error ? reason.message : "Unexpected server error.";
-    return Response.json({ error: message }, { status: 500 });
+    return routeError("DELETE /api/categories/[id]", reason);
   }
 }

@@ -5,12 +5,15 @@ import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { useSortableData } from "@/hooks/useSortableData";
+import { useSortableData } from "@/hooks/use-sortable-data";
 import { EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Category } from "@/app/(app)/categories/types/category.model";
-import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
+
+/** Module-level so it stays referentially stable across renders. */
+const categoryName = (category: Category) => category.name;
 
 interface CategoryListProps {
   label: string;
@@ -30,8 +33,9 @@ export default function CategoryList(props: CategoryListProps) {
   const [showAddRow, setShowAddRow] = useState(false);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
 
-  const { sortedData, sort, toggleSort } = useSortableData(data, (c) => c.name);
+  const { sortedData, sort, toggleSort } = useSortableData(data, categoryName);
 
   const canEdit = Boolean(onUpdate);
   const canDelete = Boolean(onDelete);
@@ -179,7 +183,7 @@ export default function CategoryList(props: CategoryListProps) {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => onDelete?.(category.id)}
+                                onClick={() => setPendingDelete(category)}
                                 disabled={pending}
                                 aria-label={`Delete ${category.name}`}
                               >
@@ -226,6 +230,19 @@ export default function CategoryList(props: CategoryListProps) {
           </Table>
         )}
       </div>
+
+      <ConfirmDeleteDialog
+        open={pendingDelete !== null}
+        onOpenChange={(next) => {
+          if (!next) setPendingDelete(null);
+        }}
+        title="Delete category?"
+        itemName={pendingDelete?.name ?? "this category"}
+        onConfirm={() => {
+          if (pendingDelete) onDelete?.(pendingDelete.id);
+          setPendingDelete(null);
+        }}
+      />
     </Card>
   );
 }

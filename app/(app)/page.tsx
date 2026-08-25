@@ -1,11 +1,11 @@
 import PageTitle from "@/components/shared/page-title";
 import Dashboard from "@/components/dashboard/dashboard";
+import { DEFAULT_HOUSEHOLD_NAME } from "@/constants";
 
 export default function Home() {
   return (
     <>
-      {/* subtitle should be dynamic and fetched from user context */}
-      <PageTitle title="Dashboard" subtitle="De Guzman Household" />
+      <PageTitle title="Dashboard" subtitle={DEFAULT_HOUSEHOLD_NAME} />
       <Dashboard />
     </>
   );

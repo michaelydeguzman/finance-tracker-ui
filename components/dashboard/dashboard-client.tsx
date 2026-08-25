@@ -38,6 +38,8 @@ import { toast } from "sonner";
 import { CategoryType } from "@/types/shared/enums";
 import type { Transaction } from "@/app/transactions/types/transaction.model";
 import { getTransactions } from "@/lib/api/transactions";
+import { formatCurrency } from "@/lib/currency";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   type DashboardPeriodPreset,
   resolvePeriodRange,
@@ -48,12 +50,6 @@ import {
   monthlyAverages,
   pieByCategory,
 } from "@/components/dashboard/aggregates";
-
-const currency = new Intl.NumberFormat(undefined, {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
 
 const presetLabels: Record<DashboardPeriodPreset, string> = {
   last_month: "Last month",
@@ -79,6 +75,16 @@ function toDateInputValue(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+type LoadedTransactions = {
+  /** The range these rows were fetched for. */
+  key: string;
+  rows: Transaction[];
+  ok: boolean;
+};
+
+/** Stable empty array so downstream memos do not churn while loading. */
+const NO_TRANSACTIONS: Transaction[] = [];
+
 function parseDateInput(s: string): Date | null {
   if (!s) {
     return null;
@@ -91,73 +97,73 @@ function parseDateInput(s: string): Date | null {
 }
 
 export default function DashboardClient(): React.ReactNode {
-  const [mockNow] = React.useState(() => new Date());
-  const [transactions, setTransactions] = React.useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [dataSource, setDataSource] = React.useState<
-    "live" | "unavailable"
-  >("live");
+  // Frozen at mount so preset ranges stay stable while the page is open.
+  const [now] = React.useState(() => new Date());
+  const [loaded, setLoaded] = React.useState<LoadedTransactions | null>(null);
 
   const [preset, setPreset] =
     React.useState<DashboardPeriodPreset>("last_3_months");
   const [customStartStr, setCustomStartStr] = React.useState(() =>
     toDateInputValue(
-      resolvePeriodRange("last_3_months", mockNow, null, null)?.start ??
-        mockNow,
+      resolvePeriodRange("last_3_months", now, null, null)?.start ?? now,
     ),
   );
   const [customEndStr, setCustomEndStr] = React.useState(() =>
     toDateInputValue(
-      resolvePeriodRange("last_3_months", mockNow, null, null)?.end ?? mockNow,
+      resolvePeriodRange("last_3_months", now, null, null)?.end ?? now,
     ),
   );
 
+  // Typing in the custom date inputs used to refire the request per keystroke.
+  const debouncedStartStr = useDebouncedValue(customStartStr);
+  const debouncedEndStr = useDebouncedValue(customEndStr);
+
   const range = React.useMemo(() => {
-    const cs = parseDateInput(customStartStr);
-    const ce = parseDateInput(customEndStr);
-    return resolvePeriodRange(preset, mockNow, cs, ce);
-  }, [customEndStr, customStartStr, mockNow, preset]);
+    const cs = parseDateInput(debouncedStartStr);
+    const ce = parseDateInput(debouncedEndStr);
+    return resolvePeriodRange(preset, now, cs, ce);
+  }, [debouncedEndStr, debouncedStartStr, now, preset]);
+
+  // Primitive bounds, so the fetch effect reruns only when the range actually
+  // moves rather than whenever the memo produces a fresh object.
+  const fromIso = range === null ? null : range.start.toISOString();
+  const toIso = range === null ? null : range.end.toISOString();
+
+  // Loading and failure are derived from which range the stored rows belong
+  // to, so the effect never calls setState synchronously on the render pass.
+  const rangeKey = `${fromIso ?? "all"}|${toIso ?? "all"}`;
+  const isCurrent = loaded?.key === rangeKey;
+  const isLoading = !isCurrent;
+  const transactions = isCurrent ? loaded.rows : NO_TRANSACTIONS;
+  const dataSource = isCurrent && !loaded.ok ? "unavailable" : "live";
 
   React.useEffect(() => {
     const controller = new AbortController();
-    const cs = parseDateInput(customStartStr);
-    const ce = parseDateInput(customEndStr);
-    const resolvedRange = resolvePeriodRange(preset, mockNow, cs, ce);
 
-    setIsLoading(true);
     void (async () => {
       try {
         const rows =
-          resolvedRange === null
+          fromIso === null || toIso === null
             ? await getTransactions(undefined, { signal: controller.signal })
             : await getTransactions(
-                {
-                  from: resolvedRange.start.toISOString(),
-                  to: resolvedRange.end.toISOString(),
-                },
+                { from: fromIso, to: toIso },
                 { signal: controller.signal },
               );
         if (controller.signal.aborted) {
           return;
         }
-        setTransactions(rows);
-        setDataSource("live");
+        setLoaded({ key: rangeKey, rows, ok: true });
       } catch {
         if (controller.signal.aborted) {
           return;
         }
         toast.error("Could not load transactions.");
-        setTransactions([]);
-        setDataSource("unavailable");
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        setLoaded({ key: rangeKey, rows: [], ok: false });
       }
     })();
 
     return () => controller.abort();
-  }, [customEndStr, customStartStr, mockNow, preset]);
+  }, [fromIso, toIso, rangeKey]);
 
   const filtered = React.useMemo(
     () => filterTransactionsByRange(transactions, range),
@@ -273,7 +279,7 @@ export default function DashboardClient(): React.ReactNode {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold tabular-nums">
-              {currency.format(avgIncome)}
+              {formatCurrency(avgIncome)}
             </p>
           </CardContent>
         </Card>
@@ -289,7 +295,7 @@ export default function DashboardClient(): React.ReactNode {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold tabular-nums">
-              {currency.format(avgExpenses)}
+              {formatCurrency(avgExpenses)}
             </p>
           </CardContent>
         </Card>
@@ -324,13 +330,13 @@ export default function DashboardClient(): React.ReactNode {
                 axisLine={false}
                 tickMargin={8}
                 tickFormatter={(v) =>
-                  typeof v === "number" ? currency.format(v) : String(v)
+                  typeof v === "number" ? formatCurrency(v) : String(v)
                 }
               />
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(val) => currency.format(Number(val))}
+                    formatter={(val) => formatCurrency(Number(val))}
                   />
                 }
               />
@@ -364,7 +370,7 @@ export default function DashboardClient(): React.ReactNode {
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
-                        formatter={(val) => currency.format(Number(val))}
+                        formatter={(val) => formatCurrency(Number(val))}
                         nameKey="name"
                       />
                     }
@@ -410,7 +416,7 @@ export default function DashboardClient(): React.ReactNode {
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
-                        formatter={(val) => currency.format(Number(val))}
+                        formatter={(val) => formatCurrency(Number(val))}
                         nameKey="name"
                       />
                     }

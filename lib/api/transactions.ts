@@ -51,13 +51,8 @@ export const getTransactions = async (
   query?: TransactionListQuery,
   init?: RequestInit,
 ): Promise<Transaction[]> =>
-  (
-    await apiFetch<TransactionResponse[]>(transactionListUrl(query), init)
-  ).map(mapTransaction);
-
-export const getTransaction = async (id: string): Promise<Transaction> =>
-  mapTransaction(
-    await apiFetch<TransactionResponse>(TRANSACTION_ENDPOINTS.byId(id)),
+  (await apiFetch<TransactionResponse[]>(transactionListUrl(query), init)).map(
+    mapTransaction,
   );
 
 export const getTransactionsByType = async (

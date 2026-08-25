@@ -1,3 +1,4 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
 const experimentalConfig: NextConfig["experimental"] = {
@@ -16,32 +17,30 @@ if (process.env.NEXT_CANARY === "true") {
 }
 
 const nextConfig: NextConfig = {
-  // Enable experimental features
   experimental: experimentalConfig,
 
-  // Performance optimizations
   compress: true,
 
-  // Image optimization
   images: {
     formats: ["image/webp", "image/avif"],
-    dangerouslyAllowSVG: true,
+    // SVG through the optimizer is not needed here, and allowing it lets an
+    // untrusted SVG carry script. The CSP below is belt-and-braces.
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
-  // Bundle analyzer (uncomment for analysis)
-  // bundlePagesRouterDependencies: true,
-
-  // Type checking
   typescript: {
     ignoreBuildErrors: false,
   },
 
-  // ESLint
   eslint: {
     ignoreDuringBuilds: false,
   },
 };
 
-export default nextConfig;
+// `npm run analyze` sets ANALYZE=true; previously nothing read it.
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
+export default withBundleAnalyzer(nextConfig);

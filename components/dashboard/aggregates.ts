@@ -59,7 +59,9 @@ export function summarizeTotals(transactions: Transaction[]): {
   };
 }
 
-export function barChartDataFromTotals(transactions: Transaction[]): BarTotalsRow[] {
+export function barChartDataFromTotals(
+  transactions: Transaction[],
+): BarTotalsRow[] {
   const { totalIncome, totalExpenses, savings } = summarizeTotals(transactions);
   return [
     { label: "Income", value: Math.round(totalIncome * 100) / 100 },

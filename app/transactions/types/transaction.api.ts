@@ -21,6 +21,10 @@ export interface UpsertTransactionRequest {
   description?: string | null;
   amount: number;
   frequencyId?: string | null;
-  transactionDate: Date;
+  /**
+   * A Date on the client; an ISO string by the time the route handler reads it
+   * back out of JSON. Both are accepted rather than cast away.
+   */
+  transactionDate: Date | string;
   createdBy: string;
 }

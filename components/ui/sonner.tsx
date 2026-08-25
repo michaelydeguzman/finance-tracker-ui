@@ -1,23 +1,26 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   CircleCheckIcon,
   InfoIcon,
   Loader2Icon,
   OctagonXIcon,
   TriangleAlertIcon,
-} from "lucide-react"
-import { useTheme } from "next-themes"
-import { Toaster as Sonner, type ToasterProps } from "sonner"
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-const isToasterTheme = (value: unknown): value is NonNullable<ToasterProps["theme"]> =>
-  value === "light" || value === "dark" || value === "system"
+const isToasterTheme = (
+  value: unknown,
+): value is NonNullable<ToasterProps["theme"]> =>
+  value === "light" || value === "dark" || value === "system";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme: resolvedTheme } = useTheme()
-  const theme = isToasterTheme(resolvedTheme) ? resolvedTheme : undefined
-  const themeProps: Pick<ToasterProps, "theme"> = theme === undefined ? {} : { theme }
+  const { theme: resolvedTheme } = useTheme();
+  const theme = isToasterTheme(resolvedTheme) ? resolvedTheme : undefined;
+  const themeProps: Pick<ToasterProps, "theme"> =
+    theme === undefined ? {} : { theme };
 
   return (
     <Sonner
@@ -40,7 +43,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

@@ -42,7 +42,7 @@
   - `types/` — route-specific type definitions
   - `data/` — route-specific constants and mock data
 - Place shared/reusable components in `components/` using these sub-folders:
-  - `shared/` — generic, reusable UI components used across multiple features (e.g., `Card`, `PageTitle`, `SortButton`, `AsyncBoundary`)
+  - `shared/` — generic, reusable UI components used across multiple features (e.g., `Card`, `PageTitle`, `SortButton`, `ConfirmDeleteDialog`)
   - `layout/` — layout primitives used to structure pages (e.g., `PageWithSidebar`, `StickyRightSidebar`)
   - `header/` — app header components
   - `sidebar/` — app sidebar components
@@ -68,7 +68,7 @@
 - Write unit tests for all components and hooks
 - Use descriptive test names that reflect the functionality being tested
 - Aim for high test coverage, especially for critical components and logic
-- Use testing libraries like Jest and React Testing Library
+- Tests are Vitest suites in `tests/`; run `npm run test`
 
 ## Documentation
 

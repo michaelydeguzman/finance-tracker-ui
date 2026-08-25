@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
 import {
   createCategory,
@@ -19,6 +20,9 @@ interface UseCategoriesResult {
   deleteCategory: (id: string) => void;
 }
 
+const typeLabel = (categoryType: CategoryType): string =>
+  categoryType === CategoryType.Income ? "income" : "expense";
+
 export function useCategories(categoryType: CategoryType): UseCategoriesResult {
   const { data, pending, setData, addItem, updateItem, deleteItem } =
     useOptimisticList<Category>(
@@ -30,39 +34,47 @@ export function useCategories(categoryType: CategoryType): UseCategoriesResult {
         }),
       (id, category) =>
         updateCategory(id, {
-          name: category.name,
-          categoryType: category.categoryType,
-        } as Category),
+          name: category.name ?? "",
+          categoryType: category.categoryType ?? categoryType,
+        }),
       (id) => deleteCategory(id),
       "Category",
     );
 
   useEffect(() => {
+    let isActive = true;
+
     getCategoriesByType(categoryType)
-      .then(setData)
+      .then((result) => {
+        if (isActive) setData(result);
+      })
       .catch((error) => {
-        const label =
-          categoryType === CategoryType.Income
-            ? "income"
-            : categoryType === CategoryType.Expense
-              ? "expense"
-              : "selected";
-        console.error(`Failed to fetch ${label} categories:`, error);
+        console.error(
+          `Failed to fetch ${typeLabel(categoryType)} categories:`,
+          error,
+        );
+        if (isActive) {
+          // Previously this only reached the console, so a failed load looked
+          // identical to "you have no categories yet".
+          toast.error(`Could not load ${typeLabel(categoryType)} categories.`);
+        }
       });
+
+    return () => {
+      isActive = false;
+    };
   }, [categoryType, setData]);
 
   const addCategoryHandler = (name: string): void => {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      alert("Category name cannot be empty.");
+      toast.error("Category name cannot be empty.");
       return;
     }
 
-    const lower = trimmedName.toLowerCase();
-
-    if (data.some((c) => c.name.toLowerCase() === lower)) {
-      alert(`Category "${trimmedName}" already exists!`);
+    if (data.some((c) => c.name.toLowerCase() === trimmedName.toLowerCase())) {
+      toast.error(`Category "${trimmedName}" already exists.`);
       return;
     }
 
@@ -78,32 +90,20 @@ export function useCategories(categoryType: CategoryType): UseCategoriesResult {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      alert("Category name cannot be empty.");
+      toast.error("Category name cannot be empty.");
       return;
     }
 
-    const lower = trimmedName.toLowerCase();
+    const isDuplicate = data.some(
+      (c) => c.id !== id && c.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
 
-    if (data.some((c) => c.id !== id && c.name.toLowerCase() === lower)) {
-      alert(`Category "${trimmedName}" already exists!`);
+    if (isDuplicate) {
+      toast.error(`Category "${trimmedName}" already exists.`);
       return;
     }
 
-    updateItem(id, {
-      name: trimmedName,
-      categoryType,
-    });
-  };
-
-  const deleteCategoryHandler = (id: string): void => {
-    const category = data.find((item) => item.id === id);
-    const label = category?.name ?? "this category";
-
-    if (!confirm(`Delete ${label}? This cannot be undone.`)) {
-      return;
-    }
-
-    deleteItem(id);
+    updateItem(id, { name: trimmedName, categoryType });
   };
 
   return {
@@ -111,7 +111,8 @@ export function useCategories(categoryType: CategoryType): UseCategoriesResult {
     pending,
     addCategory: addCategoryHandler,
     updateCategory: updateCategoryHandler,
-    deleteCategory: deleteCategoryHandler,
+    // Confirmation lives in the UI layer (`ConfirmDeleteDialog`), not a
+    // blocking `confirm()` call inside the data hook.
+    deleteCategory: deleteItem,
   };
 }
-

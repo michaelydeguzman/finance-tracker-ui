@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CategoryType } from "@/types/shared/enums";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useIncomeCategories } from "@/app/(app)/categories/hooks/use-income-categories";
-import { useExpenseCategories } from "@/app/(app)/categories/hooks/use-expense-categories";
+import type { Category } from "@/app/(app)/categories/types/category.model";
 import type { Transaction } from "../types/transaction.model";
 import type { TransactionInput } from "../hooks/use-transactions";
 
@@ -37,6 +36,9 @@ export type AddTransactionDialogProps = {
   /** Required when `mode` is `"edit"`. */
   onUpdate?: (id: string, input: TransactionInput) => void;
   createdBy?: string;
+  /** Fetched once by the page and shared by the add + edit dialogs. */
+  categories: Category[];
+  categoriesPending?: boolean;
 };
 
 const toDateInputValue = (date: Date): string => {
@@ -55,23 +57,31 @@ export function AddTransactionDialog({
   onSubmit,
   onUpdate,
   createdBy = "finance-tracker-ui",
+  categories,
+  categoriesPending = false,
 }: AddTransactionDialogProps) {
-  const income = useIncomeCategories();
-  const expense = useExpenseCategories();
-  const categoryState = categoryType === CategoryType.Income ? income : expense;
+  const isEdit = mode === "edit";
 
-  const categories =
-    categoryType === CategoryType.Income
-      ? income.incomeCategories
-      : expense.expenseCategories;
-
-  const categoriesPending = categoryState.pending;
-
-  const [name, setName] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState<string>("");
-  const [date, setDate] = useState<string>(() => toDateInputValue(new Date()));
+  // Seeded once per mount. The parent only mounts this while it is open, so
+  // opening the dialog is what produces fresh state — no populate-on-open
+  // effect, and no cascading render from setState inside an effect.
+  const [name, setName] = useState(() =>
+    isEdit && transaction ? transaction.name : "",
+  );
+  const [categoryId, setCategoryId] = useState<string>(() =>
+    isEdit && transaction ? transaction.categoryId : "",
+  );
+  const [description, setDescription] = useState(() =>
+    isEdit && transaction ? (transaction.description ?? "") : "",
+  );
+  const [amount, setAmount] = useState<string>(() =>
+    isEdit && transaction ? String(transaction.amount) : "",
+  );
+  const [date, setDate] = useState<string>(() =>
+    toDateInputValue(
+      isEdit && transaction ? transaction.transactionDate : new Date(),
+    ),
+  );
   const [submitting, setSubmitting] = useState(false);
 
   const categoryById = useMemo(() => {
@@ -79,8 +89,6 @@ export function AddTransactionDialog({
     for (const c of categories) map.set(c.id, c.name);
     return map;
   }, [categories]);
-
-  const isEdit = mode === "edit";
 
   const title = isEdit
     ? categoryType === CategoryType.Income
@@ -95,27 +103,6 @@ export function AddTransactionDialog({
     : categoryType === CategoryType.Income
       ? "Log a new income transaction."
       : "Log a new expense transaction.";
-
-  const reset = () => {
-    setName("");
-    setCategoryId("");
-    setDescription("");
-    setAmount("");
-    setDate(toDateInputValue(new Date()));
-  };
-
-  useEffect(() => {
-    if (!open) return;
-    if (isEdit && transaction) {
-      setName(transaction.name);
-      setCategoryId(transaction.categoryId);
-      setDescription(transaction.description ?? "");
-      setAmount(String(transaction.amount));
-      setDate(toDateInputValue(transaction.transactionDate));
-    } else if (!isEdit) {
-      reset();
-    }
-  }, [open, isEdit, transaction]);
 
   const handleSubmit = async () => {
     const trimmedName = name.trim();
@@ -172,7 +159,6 @@ export function AddTransactionDialog({
           return;
         }
         onUpdate(transaction.id, payload);
-        reset();
         onOpenChange(false);
       } else {
         if (!onSubmit) {
@@ -181,7 +167,6 @@ export function AddTransactionDialog({
         }
         onSubmit(payload);
         toast.success(`${title} saved.`);
-        reset();
         onOpenChange(false);
       }
     } catch (e) {
@@ -194,13 +179,7 @@ export function AddTransactionDialog({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next: boolean) => {
-        onOpenChange(next);
-        if (!next) reset();
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -209,13 +188,18 @@ export function AddTransactionDialog({
 
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Category</label>
+            <label
+              htmlFor="transaction-category"
+              className="text-sm font-medium"
+            >
+              Category
+            </label>
             <Select
               value={categoryId}
               onValueChange={(v) => setCategoryId(v)}
               disabled={categoriesPending}
             >
-              <SelectTrigger>
+              <SelectTrigger id="transaction-category">
                 <SelectValue
                   placeholder={
                     categoriesPending

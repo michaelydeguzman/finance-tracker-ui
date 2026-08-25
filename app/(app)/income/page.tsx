@@ -1,11 +1,15 @@
 import PageTitle from "@/components/shared/page-title";
-import { IncomeClient } from "./components/income-client";
+import { TransactionPageClient } from "@/app/transactions/components/transaction-page-client";
+import { DEFAULT_HOUSEHOLD_NAME } from "@/constants";
+import { CategoryType } from "@/types/shared/enums";
+
+export const metadata = { title: "Income" };
 
 export default function Income() {
   return (
-    <div className="space-y-6">
-      <PageTitle title="Income" subtitle="De Guzman Household" />
-      <IncomeClient />
-    </div>
+    <>
+      <PageTitle title="Income" subtitle={DEFAULT_HOUSEHOLD_NAME} />
+      <TransactionPageClient categoryType={CategoryType.Income} />
+    </>
   );
 }

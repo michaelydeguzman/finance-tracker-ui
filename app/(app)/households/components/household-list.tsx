@@ -5,16 +5,19 @@ import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { useSortableData } from "@/hooks/useSortableData";
+import { useSortableData } from "@/hooks/use-sortable-data";
 import { EditIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-// Mock data - replace with actual household data
-const MOCK_HOUSEHOLDS = [
+// Placeholder data. Nothing here is persisted — see the notice on the page.
+const PLACEHOLDER_HOUSEHOLDS = [
   "De Guzman Household",
   "Smith Family",
   "Johnson Residence",
 ];
+
+/** Module-level so it stays referentially stable across renders. */
+const identity = (household: string) => household;
 
 interface HouseholdListProps {
   label?: string;
@@ -23,7 +26,9 @@ interface HouseholdListProps {
 export default function HouseholdList({
   label = "Households",
 }: HouseholdListProps) {
-  const [households, setHouseholds] = useState<string[]>(MOCK_HOUSEHOLDS);
+  const [households, setHouseholds] = useState<string[]>(
+    PLACEHOLDER_HOUSEHOLDS,
+  );
   const [showAddRow, setShowAddRow] = useState(false);
   const [editingHousehold, setEditingHousehold] = useState<string | null>(null);
 
@@ -32,7 +37,7 @@ export default function HouseholdList({
 
   const { sortedData, sort, toggleSort } = useSortableData(
     households,
-    (h) => h,
+    identity,
   );
 
   const handleSaveClick = () => {

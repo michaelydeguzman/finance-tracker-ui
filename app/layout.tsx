@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { APP_NAME } from "@/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,45 +17,22 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Finance Tracker",
-    template: "%s | Finance Tracker",
+    default: APP_NAME,
+    template: `%s | ${APP_NAME}`,
   },
   description:
     "Track your household finances with ease. Manage expenses, income, and budgets efficiently.",
-  keywords: [
-    "finance",
-    "budget",
-    "expense tracker",
-    "income management",
-    "household finances",
-  ],
   authors: [{ name: "Michael De Guzman" }],
   creator: "Michael De Guzman",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ),
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    title: "Finance Tracker",
-    description: "Track your household finances with ease",
-    siteName: "Finance Tracker",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Finance Tracker",
-    description: "Track your household finances with ease",
-  },
+  // Private household data: never index, and no social cards to leak titles.
   robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: { index: false, follow: false },
   },
 };
 

@@ -1,32 +1,37 @@
 import type { UpsertTransactionRequest } from "@/app/transactions/types/transaction.api";
 import {
+  callBackend,
+  isUuid,
+  requireJsonContentType,
+  requireSession,
+  routeError,
+} from "@/lib/server/backend";
+import { parseCategoryType } from "@/lib/category-type";
+import {
+  MAX_PAGE_SIZE,
   buildBackendTransactionListSearchParams,
   buildNormalizedTransactionUpsertBody,
-  isUuidString,
-  isValidCategoryTypeValue,
   isValidTransactionDate,
   parsePositiveIntParam,
+  validateTransactionBody,
 } from "./common/utils";
 
-const API_URL = process.env.API_URL;
-
 export async function GET(request: Request) {
+  const unauthorized = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const { searchParams } = new URL(request.url);
-    const categoryTypeRaw = searchParams.get("categoryType");
 
-    if (
-      categoryTypeRaw !== null &&
-      !isValidCategoryTypeValue(Number(categoryTypeRaw))
-    ) {
+    const rawCategoryType = searchParams.get("categoryType");
+    const categoryType = parseCategoryType(rawCategoryType);
+
+    if (rawCategoryType !== null && categoryType === undefined) {
       return Response.json(
         { error: "Category type must be income or expense." },
         { status: 400 },
       );
     }
-
-    const categoryTypeNum =
-      categoryTypeRaw !== null ? Number(categoryTypeRaw) : null;
 
     const fromRaw = searchParams.get("from");
     const toRaw = searchParams.get("to");
@@ -42,6 +47,7 @@ export async function GET(request: Request) {
     if (fromRaw !== null && toRaw !== null) {
       const fromTrim = fromRaw.trim();
       const toTrim = toRaw.trim();
+
       if (
         !isValidTransactionDate(fromTrim) ||
         !isValidTransactionDate(toTrim)
@@ -51,16 +57,25 @@ export async function GET(request: Request) {
           { status: 400 },
         );
       }
+
+      if (new Date(fromTrim).getTime() > new Date(toTrim).getTime()) {
+        return Response.json(
+          { error: "from must not be after to." },
+          { status: 400 },
+        );
+      }
+
       from = fromTrim;
       to = toTrim;
     }
 
-    const categoryIdRaw = searchParams
+    const categoryIds = searchParams
       .getAll("categoryIds")
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
-    for (const id of categoryIdRaw) {
-      if (!isUuidString(id)) {
+      .map((value) => value.trim())
+      .filter((value) => value !== "");
+
+    for (const id of categoryIds) {
+      if (!isUuid(id)) {
         return Response.json(
           { error: "Invalid categoryIds value." },
           { status: 400 },
@@ -81,114 +96,61 @@ export async function GET(request: Request) {
     let pageSize: number | null = null;
     if (pageRaw !== null && pageSizeRaw !== null) {
       const pageParsed = parsePositiveIntParam(pageRaw, "page");
-      if (pageParsed instanceof Response) {
-        return pageParsed;
-      }
-      const pageSizeParsed = parsePositiveIntParam(pageSizeRaw, "pageSize");
-      if (pageSizeParsed instanceof Response) {
-        return pageSizeParsed;
-      }
+      if (pageParsed instanceof Response) return pageParsed;
+
+      const pageSizeParsed = parsePositiveIntParam(
+        pageSizeRaw,
+        "pageSize",
+        MAX_PAGE_SIZE,
+      );
+      if (pageSizeParsed instanceof Response) return pageSizeParsed;
+
       page = pageParsed;
       pageSize = pageSizeParsed;
     }
 
-    const backendParams = buildBackendTransactionListSearchParams({
-      categoryType: categoryTypeNum,
+    const qs = buildBackendTransactionListSearchParams({
+      categoryType,
       from,
       to,
-      categoryIds: categoryIdRaw,
+      categoryIds,
       page,
       pageSize,
-    });
+    }).toString();
 
-    const qs = backendParams.toString();
-    const backendUrl = qs
-      ? `${API_URL}/v1/transactions?${qs}`
-      : `${API_URL}/v1/transactions`;
+    const result = await callBackend(
+      qs ? `/v1/transactions?${qs}` : "/v1/transactions",
+    );
 
-    const response = await fetch(backendUrl);
-
-    if (!response.ok) {
-      const text = await response.text();
-      return Response.json(
-        { error: text || "Backend request failed." },
-        { status: response.status },
-      );
-    }
-
-    const data = await response.json();
-    return Response.json(data);
+    return result.ok ? Response.json(result.data) : result.response;
   } catch (reason) {
-    const message =
-      reason instanceof Error ? reason.message : "Unexpected server error.";
-    return Response.json({ error: message }, { status: 500 });
+    return routeError("GET /api/transactions", reason);
   }
 }
 
 export async function POST(request: Request) {
-  if (!request.headers.get("content-type")?.includes("application/json")) {
-    return Response.json(
-      { error: "Content-Type must be application/json." },
-      { status: 415 },
-    );
-  }
+  const unauthorized = await requireSession();
+  if (unauthorized) return unauthorized;
+
+  const wrongContentType = requireJsonContentType(request);
+  if (wrongContentType) return wrongContentType;
 
   try {
     const body = (await request.json()) as Partial<UpsertTransactionRequest>;
 
-    if (!body?.name?.trim()) {
-      return Response.json({ error: "Name is required." }, { status: 400 });
-    }
+    const invalid = validateTransactionBody(body);
+    if (invalid) return invalid;
 
-    if (!body?.categoryId?.trim()) {
-      return Response.json(
-        { error: "Category id is required." },
-        { status: 400 },
-      );
-    }
-
-    if (!Number.isFinite(body?.amount) || Number(body.amount) <= 0) {
-      return Response.json(
-        { error: "Amount must be greater than zero." },
-        { status: 400 },
-      );
-    }
-
-    if (!isValidTransactionDate(body?.transactionDate)) {
-      return Response.json(
-        { error: "Transaction date is invalid." },
-        { status: 400 },
-      );
-    }
-
-    if (!body?.createdBy?.trim()) {
-      return Response.json(
-        { error: "Created by is required." },
-        { status: 400 },
-      );
-    }
-
-    const normalized = buildNormalizedTransactionUpsertBody(body);
-
-    const response = await fetch(`${API_URL}/v1/transactions`, {
+    const result = await callBackend("/v1/transactions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(normalized),
+      body: JSON.stringify(buildNormalizedTransactionUpsertBody(body)),
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      return Response.json(
-        { error: text || "Backend request failed." },
-        { status: response.status },
-      );
-    }
-
-    const data = await response.json();
-    return Response.json(data, { status: 201 });
+    return result.ok
+      ? Response.json(result.data, { status: 201 })
+      : result.response;
   } catch (reason) {
-    const message =
-      reason instanceof Error ? reason.message : "Unexpected server error.";
-    return Response.json({ error: message }, { status: 500 });
+    return routeError("POST /api/transactions", reason);
   }
 }
