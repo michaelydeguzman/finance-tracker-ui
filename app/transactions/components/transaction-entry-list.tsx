@@ -6,7 +6,7 @@ import { ChevronDownIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { formatTransactionAmount } from "@/lib/currency";
+import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import type { TransactionEntry } from "../types/transaction.model";
 
@@ -202,7 +202,7 @@ export function TransactionEntryList({
                     </div>
                     <span className="font-semibold text-right tabular-nums whitespace-nowrap">
                       {amountPrefix}
-                      {formatTransactionAmount(entry.amount)}
+                      {formatCurrency(entry.amount)}
                     </span>
                     <ChevronDownIcon
                       className={cn(
@@ -249,7 +249,7 @@ export function TransactionEntryList({
                         <span className="text-sm font-semibold">Amount</span>
                         <span className="font-semibold tabular-nums whitespace-nowrap">
                           {amountPrefix}
-                          {formatTransactionAmount(entry.amount)}
+                          {formatCurrency(entry.amount)}
                         </span>
                       </div>
                     </div>

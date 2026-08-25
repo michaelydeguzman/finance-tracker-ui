@@ -329,6 +329,9 @@ export default function DashboardClient(): React.ReactNode {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                // Ticks carry the full `$1,234.56 CAD` label, so the axis needs
+                // more room than Recharts' 60px default or they clip.
+                width={116}
                 tickFormatter={(v) =>
                   typeof v === "number" ? formatCurrency(v) : String(v)
                 }
