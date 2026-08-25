@@ -10,6 +10,7 @@ import {
   buildQuickActions,
   buildTransactionEntries,
   buildTransactionSummary,
+  filterTransactionsByCategories,
 } from "../data/transaction-data";
 import { useTransactions } from "../hooks/use-transactions";
 import type { Transaction } from "../types/transaction.model";
@@ -47,14 +48,23 @@ export function TransactionPageClient({
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+
+  // Filtering happens here rather than server-side: the page already holds every
+  // transaction for this type, so toggling a chip stays instant and never
+  // discards the optimistic list's in-flight add/edit/delete state.
+  const visibleTransactions = useMemo(
+    () => filterTransactionsByCategories(transactions, selectedCategoryIds),
+    [transactions, selectedCategoryIds],
+  );
 
   const entries = useMemo(
-    () => buildTransactionEntries(transactions),
-    [transactions],
+    () => buildTransactionEntries(visibleTransactions),
+    [visibleTransactions],
   );
   const summary = useMemo(
-    () => buildTransactionSummary(transactions),
-    [transactions],
+    () => buildTransactionSummary(visibleTransactions),
+    [visibleTransactions],
   );
   const actions = useMemo(
     () =>
@@ -74,6 +84,16 @@ export function TransactionPageClient({
     transactions.find((transaction) => transaction.id === pendingDeleteId)
       ?.name ?? "this transaction";
 
+  const isFiltered = selectedCategoryIds.length > 0;
+
+  const toggleCategory = (categoryId: string): void => {
+    setSelectedCategoryIds((current) =>
+      current.includes(categoryId)
+        ? current.filter((id) => id !== categoryId)
+        : [...current, categoryId],
+    );
+  };
+
   return (
     <PageWithSidebar
       sidebar={
@@ -82,8 +102,11 @@ export function TransactionPageClient({
           summary={summary}
           actions={actions}
           showTrends={view.showTrends}
-          tipHeading={view.tipHeading}
-          tip={view.tip}
+          categories={categories}
+          selectedCategoryIds={selectedCategoryIds}
+          onToggleCategory={toggleCategory}
+          onClearCategories={() => setSelectedCategoryIds([])}
+          categoriesPending={categoriesPending}
         />
       }
     >
@@ -91,7 +114,11 @@ export function TransactionPageClient({
         entries={entries}
         pending={pending}
         loadingText={view.loadingText}
-        emptyText={view.emptyText}
+        emptyText={
+          isFiltered
+            ? "No transactions in the selected categories."
+            : view.emptyText
+        }
         icon={view.icon}
         iconClassName={view.iconClassName}
         showDividers={view.showDividers}

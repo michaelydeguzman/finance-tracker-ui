@@ -1,10 +1,16 @@
+"use client";
+
 import { ArrowDownRightIcon, ArrowUpRightIcon, MinusIcon } from "lucide-react";
 import Card from "@/components/shared/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import StickyRightSidebar from "@/components/layout/sticky-right-sidebar";
+import type { Category } from "@/app/(app)/categories/types/category.model";
 import type {
   QuickActionItem,
   TransactionSummaryItem,
 } from "../types/transaction.model";
+import { CategoryFilterChips } from "./category-filter-chips";
 
 const TREND_META = {
   up: { icon: ArrowUpRightIcon, color: "text-emerald-600" },
@@ -17,8 +23,11 @@ interface TransactionSidebarProps {
   summary: TransactionSummaryItem[];
   actions: QuickActionItem[];
   showTrends: boolean;
-  tipHeading: string;
-  tip: string;
+  categories: Category[];
+  selectedCategoryIds: string[];
+  onToggleCategory: (categoryId: string) => void;
+  onClearCategories: () => void;
+  categoriesPending: boolean;
 }
 
 export function TransactionSidebar({
@@ -26,8 +35,11 @@ export function TransactionSidebar({
   summary,
   actions,
   showTrends,
-  tipHeading,
-  tip,
+  categories,
+  selectedCategoryIds,
+  onToggleCategory,
+  onClearCategories,
+  categoriesPending,
 }: TransactionSidebarProps) {
   return (
     <StickyRightSidebar>
@@ -84,8 +96,30 @@ export function TransactionSidebar({
         </Card>
 
         <Card>
-          <h4 className="text-lg font-semibold">{tipHeading}</h4>
-          <p className="text-muted-foreground mt-2 text-sm">{tip}</p>
+          <div className="flex items-center justify-between gap-2">
+            <h4 className="text-lg font-semibold">Filters</h4>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full px-4"
+              onClick={onClearCategories}
+              disabled={selectedCategoryIds.length === 0}
+            >
+              Clear
+            </Button>
+          </div>
+
+          <Separator className="mt-4" />
+
+          <div className="mt-4">
+            <CategoryFilterChips
+              categories={categories}
+              selectedIds={selectedCategoryIds}
+              onToggle={onToggleCategory}
+              pending={categoriesPending}
+            />
+          </div>
         </Card>
       </div>
     </StickyRightSidebar>

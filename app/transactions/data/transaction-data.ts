@@ -22,6 +22,26 @@ export const buildTransactionEntries = (
     date: transaction.transactionDate.toISOString(),
   }));
 
+/**
+ * Narrows transactions to the selected categories.
+ *
+ * An empty selection means "no filter applied", not "match nothing" — every
+ * chip being off is the page's default state, and it shows everything.
+ */
+export const filterTransactionsByCategories = (
+  transactions: Transaction[],
+  selectedCategoryIds: string[],
+): Transaction[] => {
+  if (selectedCategoryIds.length === 0) {
+    return transactions;
+  }
+
+  const selected = new Set(selectedCategoryIds);
+  return transactions.filter((transaction) =>
+    selected.has(transaction.categoryId),
+  );
+};
+
 type Trend = NonNullable<TransactionSummaryItem["trend"]>;
 
 /** Month-over-month direction, or `flat` when equal / nothing to compare. */
