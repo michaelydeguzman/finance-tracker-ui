@@ -22,7 +22,14 @@ export interface TransactionEntry {
   amount: number;
   currency: string;
   category: string;
+  /** ISO string — the row formats it for display. */
   date: string;
+  /** Absent when the transaction carries no meaningful author. */
+  createdBy?: string;
+  /** ISO string. */
+  createdAt: string;
+  /** Absent for one-off transactions. */
+  frequencyName?: string;
 }
 
 export interface TransactionSummaryItem {

@@ -15,3 +15,9 @@ export const DEFAULT_HOUSEHOLD_NAME = "De Guzman Household";
  * formatted as CAD, so the same transaction rendered differently per page.
  */
 export const DISPLAY_CURRENCY = "CAD";
+
+/**
+ * Stamped into `createdBy` on rows this app writes. It identifies the client,
+ * not a person, so it is never surfaced as an author in the UI.
+ */
+export const APP_CREATED_BY = "finance-tracker-ui";

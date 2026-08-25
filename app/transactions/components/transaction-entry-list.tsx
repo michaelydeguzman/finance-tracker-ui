@@ -2,13 +2,31 @@
 
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { PencilIcon, Trash2Icon } from "lucide-react";
+import { ChevronDownIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { formatTransactionAmount } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import type { TransactionEntry } from "../types/transaction.model";
+
+/** One read-only label/value line inside an expanded row. */
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}): ReactNode {
+  return (
+    <div className="flex items-start justify-between gap-4 text-sm">
+      <span className="text-muted-foreground shrink-0 font-medium">
+        {label}
+      </span>
+      <span className="text-right">{value}</span>
+    </div>
+  );
+}
 
 export interface TransactionEntryListProps {
   entries: TransactionEntry[];
@@ -38,6 +56,19 @@ export function TransactionEntryList({
   onDeleteEntry,
 }: TransactionEntryListProps) {
   const [visibleCount, setVisibleCount] = useState(pageSize);
+  // A set rather than a single id: rows stay open independently so two entries
+  // can be compared side by side.
+  const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+
+  const toggleExpanded = (id: string): void => {
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  };
 
   const sortedEntries = useMemo(
     () =>
@@ -98,12 +129,27 @@ export function TransactionEntryList({
             {formatDateLabel(key)}
           </div>
           <div className="space-y-2">
-            {dailyEntries.map((entry, index) => (
+            {dailyEntries.map((entry, index) => {
+              const isExpanded = expandedIds.has(entry.id);
+
+              return (
               <div key={entry.id} className="flex flex-col">
                 <div
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-controls={`entry-details-${entry.id}`}
+                  onClick={() => toggleExpanded(entry.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleExpanded(entry.id);
+                    }
+                  }}
                   className={cn(
-                    "group p-3 rounded-xl flex items-center gap-3 cursor-default",
+                    "group p-3 flex items-center gap-3 cursor-pointer",
                     "bg-muted transition-colors hover:bg-muted/70",
+                    isExpanded ? "rounded-t-xl" : "rounded-xl",
                   )}
                 >
                   <div
@@ -158,13 +204,64 @@ export function TransactionEntryList({
                       {amountPrefix}
                       {formatTransactionAmount(entry.amount)}
                     </span>
+                    <ChevronDownIcon
+                      className={cn(
+                        "text-muted-foreground size-4 shrink-0 transition-transform",
+                        isExpanded && "rotate-180",
+                      )}
+                      aria-hidden="true"
+                    />
                   </div>
                 </div>
+
+                {isExpanded ? (
+                  <div
+                    id={`entry-details-${entry.id}`}
+                    className="bg-muted/60 space-y-2 rounded-b-xl px-3 pt-1 pb-3"
+                  >
+                    <DetailRow label="Category" value={entry.category} />
+                    <DetailRow
+                      label="Date"
+                      value={formatDateLabel(entry.date)}
+                    />
+                    {entry.description ? (
+                      <DetailRow
+                        label="Description"
+                        value={entry.description}
+                      />
+                    ) : null}
+                    {entry.frequencyName ? (
+                      <DetailRow
+                        label="Recurrence"
+                        value={entry.frequencyName}
+                      />
+                    ) : null}
+                    {entry.createdBy ? (
+                      <DetailRow label="Added by" value={entry.createdBy} />
+                    ) : null}
+                    <DetailRow
+                      label="Added on"
+                      value={formatDateLabel(entry.createdAt)}
+                    />
+
+                    <div className="border-border mt-3 border-t pt-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-sm font-semibold">Amount</span>
+                        <span className="font-semibold tabular-nums whitespace-nowrap">
+                          {amountPrefix}
+                          {formatTransactionAmount(entry.amount)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 {showDividers && index < dailyEntries.length - 1 && (
                   <div className="pt-4 border-b border-border" />
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       ))}

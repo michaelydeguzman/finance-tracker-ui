@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { APP_CREATED_BY } from "@/constants";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
 import {
   createTransaction,
@@ -13,7 +14,7 @@ import { CategoryType } from "@/types/shared/enums";
 import type { Transaction } from "../types/transaction.model";
 import type { UpsertTransactionRequest } from "../types/transaction.api";
 
-const DEFAULT_CREATED_BY = "finance-tracker-ui";
+const DEFAULT_CREATED_BY = APP_CREATED_BY;
 
 export interface TransactionInput {
   name: string;

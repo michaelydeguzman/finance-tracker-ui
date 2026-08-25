@@ -1,3 +1,4 @@
+import { APP_CREATED_BY } from "@/constants";
 import { DISPLAY_CURRENCY, formatCurrency } from "@/lib/currency";
 import type {
   QuickActionItem,
@@ -20,6 +21,17 @@ export const buildTransactionEntries = (
     currency: DISPLAY_CURRENCY,
     category: transaction.categoryName,
     date: transaction.transactionDate.toISOString(),
+    createdAt: transaction.createdAt.toISOString(),
+    // Spread conditionally rather than assigning undefined — these are optional
+    // and `exactOptionalPropertyTypes` rejects an explicit undefined.
+    // `APP_CREATED_BY` identifies this client, not a person, so it is dropped.
+    ...(transaction.createdBy?.trim() &&
+    transaction.createdBy.trim() !== APP_CREATED_BY
+      ? { createdBy: transaction.createdBy.trim() }
+      : {}),
+    ...(transaction.frequencyName
+      ? { frequencyName: transaction.frequencyName }
+      : {}),
   }));
 
 /**
