@@ -36,7 +36,7 @@ export default async function UserHeader() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
+      <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
         <Avatar className="size-8">
           {user.image ? <AvatarImage src={user.image} alt="" /> : null}
           <AvatarFallback>{initialsFor(user.name, email)}</AvatarFallback>
