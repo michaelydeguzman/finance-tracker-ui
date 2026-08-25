@@ -34,12 +34,6 @@ describe("buildTransactionEntries", () => {
     });
   });
 
-  it("carries the created timestamp the expanded row needs", () => {
-    const [entry] = buildTransactionEntries([transaction()]);
-
-    expect(entry?.createdAt).toBe(CREATED_AT.toISOString());
-  });
-
   it("keeps a real author", () => {
     const [entry] = buildTransactionEntries([
       transaction({ createdBy: "import" }),

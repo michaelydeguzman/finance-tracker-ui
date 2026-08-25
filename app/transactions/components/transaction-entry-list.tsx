@@ -239,10 +239,6 @@ export function TransactionEntryList({
                     {entry.createdBy ? (
                       <DetailRow label="Added by" value={entry.createdBy} />
                     ) : null}
-                    <DetailRow
-                      label="Added on"
-                      value={formatDateLabel(entry.createdAt)}
-                    />
 
                     <div className="border-border mt-3 border-t pt-3">
                       <div className="flex items-center justify-between gap-4">
