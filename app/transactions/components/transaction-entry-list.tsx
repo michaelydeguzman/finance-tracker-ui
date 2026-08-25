@@ -133,133 +133,132 @@ export function TransactionEntryList({
               const isExpanded = expandedIds.has(entry.id);
 
               return (
-              <div key={entry.id} className="flex flex-col">
-                <div
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={isExpanded}
-                  aria-controls={`entry-details-${entry.id}`}
-                  onClick={() => toggleExpanded(entry.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      toggleExpanded(entry.id);
-                    }
-                  }}
-                  className={cn(
-                    "group p-3 flex items-center gap-3 cursor-pointer",
-                    "bg-muted transition-colors hover:bg-muted/70",
-                    isExpanded ? "rounded-t-xl" : "rounded-xl",
-                  )}
-                >
+                <div key={entry.id} className="flex flex-col">
                   <div
-                    className={cn("rounded-full p-2.5 shrink-0", iconClassName)}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    aria-controls={`entry-details-${entry.id}`}
+                    onClick={() => toggleExpanded(entry.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleExpanded(entry.id);
+                      }
+                    }}
+                    className={cn(
+                      "group p-3 flex items-center gap-3 cursor-pointer",
+                      "bg-muted transition-colors hover:bg-muted/70",
+                      isExpanded ? "rounded-t-xl" : "rounded-xl",
+                    )}
                   >
-                    {icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-medium">{entry.category}</h4>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {entry.title}
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
                     <div
                       className={cn(
-                        "flex items-center gap-1 transition-opacity duration-150",
-                        "opacity-0 [@media(hover:none)]:opacity-100",
-                        "group-hover:opacity-100 group-focus-within:opacity-100",
+                        "rounded-full p-2.5 shrink-0",
+                        iconClassName,
                       )}
                     >
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0"
-                        aria-label="Edit transaction"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditEntry?.(entry.id);
-                        }}
-                      >
-                        <PencilIcon className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0"
-                        aria-label="Delete transaction"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteEntry?.(entry.id);
-                        }}
-                      >
-                        <Trash2Icon className="size-4" />
-                      </Button>
+                      {icon}
                     </div>
-                    <span className="font-semibold text-right tabular-nums whitespace-nowrap">
-                      {amountPrefix}
-                      {formatCurrency(entry.amount)}
-                    </span>
-                    <ChevronDownIcon
-                      className={cn(
-                        "text-muted-foreground size-4 shrink-0 transition-transform",
-                        isExpanded && "rotate-180",
-                      )}
-                      aria-hidden="true"
-                    />
-                  </div>
-                </div>
-
-                {isExpanded ? (
-                  <div
-                    id={`entry-details-${entry.id}`}
-                    className="bg-muted/60 space-y-2 rounded-b-xl px-3 pt-1 pb-3"
-                  >
-                    <DetailRow label="Category" value={entry.category} />
-                    <DetailRow
-                      label="Date"
-                      value={formatDateLabel(entry.date)}
-                    />
-                    {entry.description ? (
-                      <DetailRow
-                        label="Description"
-                        value={entry.description}
-                      />
-                    ) : null}
-                    {entry.frequencyName ? (
-                      <DetailRow
-                        label="Recurrence"
-                        value={entry.frequencyName}
-                      />
-                    ) : null}
-                    {entry.createdBy ? (
-                      <DetailRow label="Added by" value={entry.createdBy} />
-                    ) : null}
-                    <DetailRow
-                      label="Added on"
-                      value={formatDateLabel(entry.createdAt)}
-                    />
-
-                    <div className="border-border mt-3 border-t pt-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-sm font-semibold">Amount</span>
-                        <span className="font-semibold tabular-nums whitespace-nowrap">
-                          {amountPrefix}
-                          {formatCurrency(entry.amount)}
-                        </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-medium">{entry.category}</h4>
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {entry.title}
                       </div>
                     </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <div
+                        className={cn(
+                          "flex items-center gap-1 transition-opacity duration-150",
+                          "opacity-0 [@media(hover:none)]:opacity-100",
+                          "group-hover:opacity-100 group-focus-within:opacity-100",
+                        )}
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0"
+                          aria-label="Edit transaction"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditEntry?.(entry.id);
+                          }}
+                        >
+                          <PencilIcon className="size-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0"
+                          aria-label="Delete transaction"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteEntry?.(entry.id);
+                          }}
+                        >
+                          <Trash2Icon className="size-4" />
+                        </Button>
+                      </div>
+                      <span className="font-semibold text-right tabular-nums whitespace-nowrap">
+                        {amountPrefix}
+                        {formatCurrency(entry.amount)}
+                      </span>
+                      <ChevronDownIcon
+                        className={cn(
+                          "text-muted-foreground size-4 shrink-0 transition-transform",
+                          isExpanded && "rotate-180",
+                        )}
+                        aria-hidden="true"
+                      />
+                    </div>
                   </div>
-                ) : null}
 
-                {showDividers && index < dailyEntries.length - 1 && (
-                  <div className="pt-4 border-b border-border" />
-                )}
-              </div>
+                  {isExpanded ? (
+                    <div
+                      id={`entry-details-${entry.id}`}
+                      className="bg-muted/60 space-y-2 rounded-b-xl px-3 pt-1 pb-3"
+                    >
+                      <DetailRow label="Category" value={entry.category} />
+                      <DetailRow
+                        label="Date"
+                        value={formatDateLabel(entry.date)}
+                      />
+                      {entry.description ? (
+                        <DetailRow
+                          label="Description"
+                          value={entry.description}
+                        />
+                      ) : null}
+                      {entry.frequencyName ? (
+                        <DetailRow
+                          label="Recurrence"
+                          value={entry.frequencyName}
+                        />
+                      ) : null}
+                      {entry.createdBy ? (
+                        <DetailRow label="Added by" value={entry.createdBy} />
+                      ) : null}
+
+                      <div className="border-border mt-3 border-t pt-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-sm font-semibold">Amount</span>
+                          <span className="font-semibold tabular-nums whitespace-nowrap">
+                            {amountPrefix}
+                            {formatCurrency(entry.amount)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {showDividers && index < dailyEntries.length - 1 && (
+                    <div className="pt-4 border-b border-border" />
+                  )}
+                </div>
               );
             })}
           </div>

@@ -26,8 +26,6 @@ export interface TransactionEntry {
   date: string;
   /** Absent when the transaction carries no meaningful author. */
   createdBy?: string;
-  /** ISO string. */
-  createdAt: string;
   /** Absent for one-off transactions. */
   frequencyName?: string;
 }

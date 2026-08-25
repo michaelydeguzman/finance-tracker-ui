@@ -30,7 +30,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       className={cn(
         "border-input bg-card ring-offset-background placeholder:text-muted-foreground",
-        "flex h-9 w-full items-center justify-between rounded-md border px-3 py-2 text-sm shadow-xs",
+        "flex h-9 w-full cursor-pointer items-center justify-between rounded-md border px-3 py-2 text-sm shadow-xs",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
@@ -103,7 +103,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none",
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none",
         "focus:bg-accent focus:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,
@@ -141,7 +141,7 @@ function SelectScrollUpButton({
     <SelectPrimitive.ScrollUpButton
       data-slot="select-scroll-up-button"
       className={cn(
-        "flex cursor-default items-center justify-center py-1",
+        "flex cursor-pointer items-center justify-center py-1",
         className,
       )}
       {...props}
@@ -159,7 +159,7 @@ function SelectScrollDownButton({
     <SelectPrimitive.ScrollDownButton
       data-slot="select-scroll-down-button"
       className={cn(
-        "flex cursor-default items-center justify-center py-1",
+        "flex cursor-pointer items-center justify-center py-1",
         className,
       )}
       {...props}

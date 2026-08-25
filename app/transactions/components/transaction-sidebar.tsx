@@ -70,7 +70,7 @@ export function TransactionSidebar({
                 // The longer copy becomes the hover tooltip rather than being
                 // dropped — the tile itself stays icon-plus-label.
                 {...(action.description ? { title: action.description } : {})}
-                className="bg-card hover:bg-accent flex flex-col items-center justify-center gap-2 rounded-2xl p-4 shadow-sm transition-colors"
+                className="bg-card hover:bg-accent flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl p-4 shadow-sm transition-colors"
               >
                 <ActionIcon className="size-5" aria-hidden="true" />
                 <span className="text-center text-sm font-semibold">
