@@ -1,12 +1,20 @@
 "use client";
 
-import { ArrowDownRightIcon, ArrowUpRightIcon, MinusIcon } from "lucide-react";
+import {
+  ArrowDownRightIcon,
+  ArrowUpRightIcon,
+  DownloadIcon,
+  MinusIcon,
+  PlusIcon,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import StickyRightSidebar from "@/components/layout/sticky-right-sidebar";
 import type { Category } from "@/app/(app)/categories/types/category.model";
 import type {
+  QuickActionIcon,
   QuickActionItem,
   TransactionSummaryItem,
 } from "../types/transaction.model";
@@ -18,8 +26,13 @@ const TREND_META = {
   flat: { icon: MinusIcon, color: "text-muted-foreground" },
 } as const;
 
+/** Exhaustive by construction — a new `QuickActionIcon` won't compile without one. */
+const ACTION_ICONS: Record<QuickActionIcon, LucideIcon> = {
+  add: PlusIcon,
+  export: DownloadIcon,
+};
+
 interface TransactionSidebarProps {
-  summaryHeading: string;
   summary: TransactionSummaryItem[];
   actions: QuickActionItem[];
   showTrends: boolean;
@@ -31,7 +44,6 @@ interface TransactionSidebarProps {
 }
 
 export function TransactionSidebar({
-  summaryHeading,
   summary,
   actions,
   showTrends,
@@ -43,10 +55,38 @@ export function TransactionSidebar({
 }: TransactionSidebarProps) {
   return (
     <StickyRightSidebar>
-      <div className="space-y-4">
+      <div className="space-y-3">
+        {/* Deliberately not wrapped in `Card` — these read as bare tiles rather
+            than a titled section. */}
+        <div className="grid grid-cols-2 gap-3">
+          {actions.map((action) => {
+            const ActionIcon = ACTION_ICONS[action.icon];
+
+            return (
+              <button
+                key={action.id}
+                type="button"
+                onClick={action.callback}
+                // The longer copy becomes the hover tooltip rather than being
+                // dropped — the tile itself stays icon-plus-label.
+                {...(action.description ? { title: action.description } : {})}
+                className="bg-card hover:bg-accent flex flex-col items-center justify-center gap-2 rounded-2xl p-4 shadow-sm transition-colors"
+              >
+                <ActionIcon className="size-5" aria-hidden="true" />
+                <span className="text-center text-sm font-semibold">
+                  {action.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <Card>
-          <h3 className="text-lg font-semibold">{summaryHeading}</h3>
-          <div className="mt-4 space-y-3">
+          <h3 className="text-lg font-semibold">Summary</h3>
+
+          <Separator />
+
+          <div className="space-y-3">
             {summary.map((item) => {
               const trend = item.trend ?? "flat";
               const TrendIcon = TREND_META[trend].icon;
@@ -74,35 +114,16 @@ export function TransactionSidebar({
           </div>
         </Card>
 
-        <Card>
-          <h4 className="text-lg font-semibold">Quick Actions</h4>
-          <div className="mt-4 space-y-2">
-            {actions.map((action) => (
-              <button
-                key={action.id}
-                className="hover:bg-accent w-full rounded p-2 text-left text-sm"
-                type="button"
-                onClick={action.callback}
-              >
-                <span className="block font-medium">{action.label}</span>
-                {action.description ? (
-                  <span className="text-muted-foreground text-xs">
-                    {action.description}
-                  </span>
-                ) : null}
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        <Card>
+        {/* Bare like the action tiles — deliberately not wrapped in `Card`. */}
+        <div className="space-y-3 px-1 pt-1">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-lg font-semibold">Filters</h4>
+            <h4 className="text-sm font-semibold">Quick filters</h4>
+
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="rounded-full px-4"
+              className="bg-card text-foreground hover:bg-accent h-8 rounded-full px-5 text-xs font-semibold shadow-sm"
               onClick={onClearCategories}
               disabled={selectedCategoryIds.length === 0}
             >
@@ -110,17 +131,13 @@ export function TransactionSidebar({
             </Button>
           </div>
 
-          <Separator className="mt-4" />
-
-          <div className="mt-4">
-            <CategoryFilterChips
-              categories={categories}
-              selectedIds={selectedCategoryIds}
-              onToggle={onToggleCategory}
-              pending={categoriesPending}
-            />
-          </div>
-        </Card>
+          <CategoryFilterChips
+            categories={categories}
+            selectedIds={selectedCategoryIds}
+            onToggle={onToggleCategory}
+            pending={categoriesPending}
+          />
+        </div>
       </div>
     </StickyRightSidebar>
   );

@@ -6,6 +6,7 @@ import { PencilIcon, Trash2Icon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { formatTransactionAmount } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import type { TransactionEntry } from "../types/transaction.model";
 
@@ -17,7 +18,6 @@ export interface TransactionEntryListProps {
   emptyText: string;
   icon: ReactNode;
   iconClassName: string;
-  amountClassName?: string;
   amountPrefix?: string;
   showDividers?: boolean;
   onEditEntry?: (id: string) => void;
@@ -32,7 +32,6 @@ export function TransactionEntryList({
   emptyText,
   icon,
   iconClassName,
-  amountClassName,
   amountPrefix,
   showDividers = true,
   onEditEntry,
@@ -92,23 +91,23 @@ export function TransactionEntryList({
     }).format(new Date(value));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {Object.entries(groupedEntries).map(([key, dailyEntries]) => (
-        <section key={key} className="space-y-3">
+        <section key={key} className="space-y-2">
           <div className="text-[17px] font-semibold text-muted-foreground">
             {formatDateLabel(key)}
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {dailyEntries.map((entry, index) => (
               <div key={entry.id} className="flex flex-col">
                 <div
                   className={cn(
-                    "group p-4 rounded-lg flex items-center gap-4 cursor-default",
-                    "bg-muted/60 hover:bg-muted/90",
+                    "group p-3 rounded-xl flex items-center gap-3 cursor-default",
+                    "bg-muted transition-colors hover:bg-muted/70",
                   )}
                 >
                   <div
-                    className={cn("rounded-full p-3 shrink-0", iconClassName)}
+                    className={cn("rounded-full p-2.5 shrink-0", iconClassName)}
                   >
                     {icon}
                   </div>
@@ -155,18 +154,9 @@ export function TransactionEntryList({
                         <Trash2Icon className="size-4" />
                       </Button>
                     </div>
-                    <span
-                      className={cn(
-                        "font-semibold text-right tabular-nums",
-                        amountClassName,
-                      )}
-                    >
+                    <span className="font-semibold text-right tabular-nums whitespace-nowrap">
                       {amountPrefix}
-                      {entry.amount.toLocaleString(undefined, {
-                        style: "currency",
-                        currency: entry.currency,
-                        maximumFractionDigits: 0,
-                      })}
+                      {formatTransactionAmount(entry.amount)}
                     </span>
                   </div>
                 </div>

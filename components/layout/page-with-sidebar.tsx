@@ -13,7 +13,7 @@ export default function PageWithSidebar({
   className,
 }: PageWithSidebarProps) {
   return (
-    <div className={cn("flex gap-8 w-full", className)}>
+    <div className={cn("flex gap-6 w-full", className)}>
       {/* Main content area */}
       <div className="flex-1 min-w-0">{children}</div>
 

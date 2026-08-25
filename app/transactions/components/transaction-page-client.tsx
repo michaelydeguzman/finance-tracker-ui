@@ -98,7 +98,6 @@ export function TransactionPageClient({
     <PageWithSidebar
       sidebar={
         <TransactionSidebar
-          summaryHeading={view.summaryHeading}
           summary={summary}
           actions={actions}
           showTrends={view.showTrends}
@@ -123,9 +122,6 @@ export function TransactionPageClient({
         iconClassName={view.iconClassName}
         showDividers={view.showDividers}
         {...(view.amountPrefix ? { amountPrefix: view.amountPrefix } : {})}
-        {...(view.amountClassName
-          ? { amountClassName: view.amountClassName }
-          : {})}
         onEditEntry={(id) => {
           const match = transactions.find(
             (transaction) => transaction.id === id,

@@ -16,11 +16,13 @@ export type TransactionView = {
   exportDescription: string;
   loadingText: string;
   emptyText: string;
-  summaryHeading: string;
   icon: ReactNode;
   iconClassName: string;
+  /**
+   * Sign shown before the amount. Income and expenses render in the same
+   * colour, so this is what distinguishes them.
+   */
   amountPrefix?: string;
-  amountClassName?: string;
   showDividers: boolean;
   showTrends: boolean;
 };
@@ -36,7 +38,6 @@ export const TRANSACTION_VIEWS: Record<
     exportDescription: "Download the current income dataset",
     loadingText: "Loading income transactions...",
     emptyText: "No income records yet. Start by logging your first entry.",
-    summaryHeading: "Income Summary",
     icon: <WalletIcon className="size-5" />,
     iconClassName: "bg-emerald-500/10 text-emerald-600",
     showDividers: true,
@@ -49,11 +50,9 @@ export const TRANSACTION_VIEWS: Record<
     exportDescription: "Download the current expense dataset",
     loadingText: "Loading expense transactions...",
     emptyText: "No expenses yet. Add your first expense to start tracking.",
-    summaryHeading: "Spending Summary",
     icon: <ReceiptTextIcon className="size-5" />,
     iconClassName: "bg-destructive/10 text-destructive",
-    amountPrefix: "-",
-    amountClassName: "text-destructive",
+    amountPrefix: "− ",
     showDividers: false,
     showTrends: true,
   },

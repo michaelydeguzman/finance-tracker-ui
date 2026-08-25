@@ -47,7 +47,9 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  /* Warm light grey page with pure-white cards, so surfaces separate by tone
+     rather than relying on shadow alone. */
+  --background: oklch(0.952 0.003 95);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -59,9 +61,9 @@
   --secondary-foreground: oklch(0.205 0 0);
   --success: oklch(0.646 0.222 41.116);
   --success-foreground: oklch(0.145 0 0);
-  --muted: oklch(0.97 0 0);
+  --muted: oklch(0.925 0.003 95);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
+  --accent: oklch(0.945 0.003 95);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);

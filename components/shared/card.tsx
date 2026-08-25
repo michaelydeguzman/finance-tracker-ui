@@ -6,7 +6,7 @@ interface CardProps {
 export default function Card(props: CardProps) {
   const { children } = props;
   return (
-    <div className="flex w-full flex-col shadow-md p-6 rounded-2xl gap-4 border-t-2 border-gray-50">
+    <div className="bg-card flex w-full flex-col shadow-sm p-4 rounded-2xl gap-3">
       {children}
     </div>
   );

@@ -31,10 +31,13 @@ export interface TransactionSummaryItem {
   trend?: "up" | "down" | "flat";
 }
 
+/** Keys the sidebar maps to a concrete icon — a union so a typo fails to compile. */
+export type QuickActionIcon = "add" | "export";
+
 export interface QuickActionItem {
   id: string;
   label: string;
   description?: string;
-  icon: string;
+  icon: QuickActionIcon;
   callback: () => void;
 }
