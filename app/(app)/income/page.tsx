@@ -1,7 +1,6 @@
 import { auth } from "@/auth";
 import PageTitle from "@/components/shared/page-title";
 import { TransactionPageClient } from "@/app/transactions/components/transaction-page-client";
-import { DEFAULT_HOUSEHOLD_NAME } from "@/constants";
 import { CategoryType } from "@/types/shared/enums";
 
 export const metadata = { title: "Income" };
@@ -12,7 +11,7 @@ export default async function Income() {
 
   return (
     <>
-      <PageTitle title="Income" subtitle={DEFAULT_HOUSEHOLD_NAME} />
+      <PageTitle title="Income" />
       <TransactionPageClient
         categoryType={CategoryType.Income}
         {...(createdBy ? { createdBy } : {})}

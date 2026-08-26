@@ -82,12 +82,12 @@ Follow App Router conventions and co-locate route-specific code under `app/<rout
 
 Shared code lives in `components/`:
 
-| Folder | Contents |
-|---|---|
-| `shared/` | Generic reusable UI — `Card`, `PageTitle`, `SortButton`, `ConfirmDeleteDialog` |
-| `layout/` | Layout primitives — `PageWithSidebar`, `StickyRightSidebar` |
-| `header/`, `dashboard/` | Feature-area components |
-| `ui/` | shadcn/ui primitives |
+| Folder                  | Contents                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------ |
+| `shared/`               | Generic reusable UI — `Card`, `PageTitle`, `SortButton`, `ConfirmDeleteDialog` |
+| `layout/`               | Layout primitives — `PageWithSidebar`, `StickyRightSidebar`                    |
+| `header/`, `dashboard/` | Feature-area components                                                        |
+| `ui/`                   | shadcn/ui primitives                                                           |
 
 - **Do not create `common/` or `buttons/` folders** — use `shared/`.
 - Prefer the shadcn CLI (or its MCP server) to add `ui/` primitives. Manual edits are fine

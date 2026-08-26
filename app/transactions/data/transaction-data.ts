@@ -21,7 +21,6 @@ export const buildTransactionEntries = (
     currency: DISPLAY_CURRENCY,
     category: transaction.categoryName,
     date: transaction.transactionDate.toISOString(),
-    createdAt: transaction.createdAt.toISOString(),
     // Spread conditionally rather than assigning undefined — these are optional
     // and `exactOptionalPropertyTypes` rejects an explicit undefined.
     // `APP_CREATED_BY` identifies this client, not a person, so it is dropped.

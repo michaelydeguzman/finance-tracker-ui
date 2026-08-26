@@ -3,12 +3,6 @@
 export const APP_NAME = "Finance Tracker";
 
 /**
- * Household label shown under page titles.
- * Households are not yet persisted server-side — see `app/(app)/households`.
- */
-export const DEFAULT_HOUSEHOLD_NAME = "De Guzman Household";
-
-/**
  * Single source of truth for money formatting.
  *
  * Previously the dashboard formatted as USD while the income/expense lists
