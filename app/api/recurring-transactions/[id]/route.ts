@@ -7,6 +7,7 @@ import {
   routeError,
 } from "@/lib/server/backend";
 import {
+  RECURRING_INVALID_MESSAGE,
   buildNormalizedRecurringUpsertBody,
   recurringConflictMessage,
   validateRecurringBody,
@@ -72,6 +73,14 @@ export async function PUT(
     );
 
     if (result.ok) return Response.json(result.data, { status: 200 });
+
+    // A rule only the backend can check — see RECURRING_INVALID_MESSAGE.
+    if (result.response.status === 400) {
+      return Response.json(
+        { error: RECURRING_INVALID_MESSAGE },
+        { status: 400 },
+      );
+    }
 
     // The template is cancelled. Our own wording, chosen from the status code —
     // the backend's message is logged and dropped like any other body.

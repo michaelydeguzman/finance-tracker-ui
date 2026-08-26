@@ -7,6 +7,7 @@ import {
 } from "@/lib/server/backend";
 import { parseRecurringStatus } from "@/lib/recurring-status";
 import {
+  RECURRING_INVALID_MESSAGE,
   buildNormalizedRecurringUpsertBody,
   validateRecurringBody,
 } from "./common/utils";
@@ -68,9 +69,17 @@ export async function POST(request: Request) {
       session.caller,
     );
 
-    return result.ok
-      ? Response.json(result.data, { status: 201 })
-      : result.response;
+    if (result.ok) return Response.json(result.data, { status: 201 });
+
+    // A rule only the backend can check — see RECURRING_INVALID_MESSAGE.
+    if (result.response.status === 400) {
+      return Response.json(
+        { error: RECURRING_INVALID_MESSAGE },
+        { status: 400 },
+      );
+    }
+
+    return result.response;
   } catch (reason) {
     return routeError("POST /api/recurring-transactions", reason);
   }

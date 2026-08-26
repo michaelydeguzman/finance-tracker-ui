@@ -148,3 +148,16 @@ export function recurringConflictMessage(
       return "This recurring transaction could not be cancelled.";
   }
 }
+
+/**
+ * What to tell the browser when the backend rejects a create or update as
+ * invalid, after this route's own checks have already passed.
+ *
+ * Everything reachable here is a rule only the backend can enforce — the
+ * category or frequency not existing for this user, a custom frequency with no
+ * interval configured, or a schedule with no occurrence left before its end
+ * date. `callBackend`'s "The request was rejected as invalid." is true and
+ * useless; this at least says where to look, without quoting the backend.
+ */
+export const RECURRING_INVALID_MESSAGE =
+  "This recurring transaction could not be saved. Check the dates, and that the category and frequency you picked are still available — the schedule must have at least one occurrence before any end date.";
