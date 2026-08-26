@@ -9,27 +9,13 @@ import {
   signupMode,
 } from "@/auth";
 import { Separator } from "@/components/ui/separator";
+import { resolveAuthErrorMessage } from "@/lib/messages/auth";
 import { isSafeCallbackUrl } from "@/lib/safe-callback-url";
 import { AuthCard, AuthLink, AuthNotice } from "../components/auth-card";
 import { CredentialsForm } from "../components/credentials-form";
 import { ProviderSignInButton } from "../components/provider-sign-in-button";
 
 export const metadata: Metadata = { title: "Sign in" };
-
-/** NextAuth error codes mapped to something a person can act on. */
-const ERROR_MESSAGES: Record<string, string> = {
-  AccessDenied:
-    "That account is not authorized for this app. Ask the owner to add your email.",
-  Configuration:
-    "Sign-in is not configured correctly. Check the server credentials.",
-  Verification: "That sign-in link has expired. Please try again.",
-  OAuthAccountNotLinked:
-    "That email is already linked to a different sign-in provider.",
-  ExchangeFailed:
-    "We could not complete sign-in. If you already have an account with this email, sign in with your password first.",
-  RefreshFailed: "Your session expired. Please sign in again.",
-  NoApiSession: "Your sign-in is no longer valid. Please sign in again.",
-};
 
 export default async function LoginPage({
   searchParams,
@@ -54,11 +40,7 @@ export default async function LoginPage({
   // because the middleware redirected rather than the sign-in flow failing. Falling back
   // to the session's own reason means the page explains itself instead of showing a bare
   // form to someone who thought they were already signed in.
-  const reason = error ?? session?.error;
-
-  const message = reason
-    ? (ERROR_MESSAGES[reason] ?? "Sign in failed. Please try again.")
-    : null;
+  const message = resolveAuthErrorMessage(error ?? session?.error);
 
   if (!signInIsAvailable) {
     return (
