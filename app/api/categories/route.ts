@@ -8,8 +8,8 @@ import {
 import { isCategoryType, parseCategoryType } from "@/lib/category-type";
 
 export async function GET(request: Request) {
-  const unauthorized = await requireSession();
-  if (unauthorized) return unauthorized;
+  const session = await requireSession(request);
+  if (!session.ok) return session.response;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -31,6 +31,8 @@ export async function GET(request: Request) {
     const qs = query.toString();
     const result = await callBackend(
       qs ? `/v1/categories?${qs}` : "/v1/categories",
+      undefined,
+      session.caller,
     );
 
     return result.ok ? Response.json(result.data) : result.response;
@@ -40,8 +42,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const unauthorized = await requireSession();
-  if (unauthorized) return unauthorized;
+  const session = await requireSession(request);
+  if (!session.ok) return session.response;
 
   const wrongContentType = requireJsonContentType(request);
   if (wrongContentType) return wrongContentType;
@@ -62,11 +64,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await callBackend("/v1/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, categoryType }),
-    });
+    const result = await callBackend(
+      "/v1/categories",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, categoryType }),
+      },
+      session.caller,
+    );
 
     return result.ok
       ? Response.json(result.data, { status: 201 })

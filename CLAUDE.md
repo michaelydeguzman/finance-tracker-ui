@@ -29,18 +29,34 @@ boot until they exist.
 - `.env.development.local` — dev-only secrets plus `NODE_TLS_REJECT_UNAUTHORIZED=0`, which is
   what lets Node accept the .NET dev server's self-signed certificate. It must stay in this
   file so it can never reach a production build.
-- Sign-in is Google OAuth gated by an `AUTH_ALLOWED_EMAILS` allowlist. Empty means nobody can
-  sign in — intentional fail-closed behavior, not a bug.
+- Sign-in is Google OAuth, email-and-password, or a magic link. `AUTH_SIGNUP_MODE` decides
+  who may sign in: `allowlist` (default) honours `AUTH_ALLOWED_EMAILS`, and an empty list means
+  nobody can sign in — intentional fail-closed behavior, not a bug. `open` lets anyone
+  register and get their own tenant.
+- `API_BFF_SECRET` must match `Auth:BffSharedSecret` in the API's user-secrets. It guards the
+  SSO exchange endpoint, which mints a session from a provider subject rather than a
+  credential, so anything holding it can sign in as anyone.
 
 Copy from `.env.example` when setting up a new checkout. Never commit real secrets.
 
 ## Backend-for-frontend boundary
 
-Every page and `/api/*` route sits behind Auth.js (`auth.ts`, `middleware.ts`). Route handlers
-under `app/api/**` proxy to the .NET backend, which **has no auth of its own** — this is the
-security seam, so these rules are load-bearing rather than stylistic:
+Every page and `/api/*` route sits behind Auth.js (`auth.ts`, `middleware.ts`), except the
+signed-out account pages and `app/api/account/**`, which people reach precisely because they
+cannot sign in yet.
 
-- Call `requireSession()` from `lib/server/backend.ts` before proxying anything.
+Route handlers under `app/api/**` proxy to the .NET backend, which now **authenticates and
+scopes by itself**: it requires a bearer token and filters every query to that token's user.
+The BFF is no longer the only thing standing between the browser and the data, but these
+rules are still load-bearing:
+
+- Call `requireSession(request)` from `lib/server/backend.ts` before proxying anything, and
+  pass the `caller` it returns to `callBackend`, which attaches the bearer token.
+- Access and refresh tokens live in the encrypted session cookie and are read with
+  `getToken`. They are deliberately **absent from the session object** — putting them there
+  would serve them to the browser through `/api/auth/session`.
+- Anything importing `lib/server/api-session.ts` is server-only; the module says so, so a
+  stray client import is a build error rather than a leaked secret.
 - Never forward a backend response body or exception message to the browser. Use
   `callBackend` / `routeError`, which log detail server-side and return a safe message.
 - Validate every path segment and query value before it reaches a backend URL (`isUuid`,

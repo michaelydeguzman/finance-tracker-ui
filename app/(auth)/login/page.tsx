@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
-import { auth, enabledProviders, hasAllowlist, signIn } from "@/auth";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  auth,
+  enabledProviders,
+  signIn,
+  signInIsAvailable,
+  signupMode,
+} from "@/auth";
+import { Separator } from "@/components/ui/separator";
+import { AuthCard, AuthLink, AuthNotice } from "../components/auth-card";
+import { CredentialsForm } from "../components/credentials-form";
 import { ProviderSignInButton } from "../components/provider-sign-in-button";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -22,6 +24,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   Verification: "That sign-in link has expired. Please try again.",
   OAuthAccountNotLinked:
     "That email is already linked to a different sign-in provider.",
+  ExchangeFailed:
+    "We could not complete sign-in. If you already have an account with this email, sign in with your password first.",
+  RefreshFailed: "Your session expired. Please sign in again.",
 };
 
 const isSafeCallbackUrl = (value: string): boolean =>
@@ -34,7 +39,9 @@ export default async function LoginPage({
 }) {
   const session = await auth();
 
-  if (session?.user) {
+  // A session carrying an error is not usable — let them sign in again rather than
+  // bouncing them to a dashboard that will fail every request.
+  if (session?.user && !session.error) {
     redirect("/");
   }
 
@@ -48,26 +55,52 @@ export default async function LoginPage({
     ? (ERROR_MESSAGES[error] ?? "Sign in failed. Please try again.")
     : null;
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Finance Tracker</CardTitle>
-        <CardDescription>
-          Sign in with your account to access your household finances.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {message ? (
-          <p
-            className="border-destructive/40 bg-destructive/10 text-destructive rounded-md border px-3 py-2 text-sm"
-            role="alert"
-          >
-            {message}
-          </p>
-        ) : null}
+  if (!signInIsAvailable) {
+    return (
+      <AuthCard
+        title="Finance Tracker"
+        description="Sign-in is not available yet."
+      >
+        <AuthNotice tone="error">
+          No authorized users are configured. Set{" "}
+          <code className="font-mono text-xs">AUTH_ALLOWED_EMAILS</code>, or set{" "}
+          <code className="font-mono text-xs">AUTH_SIGNUP_MODE=open</code> to
+          allow anyone to register.
+        </AuthNotice>
+      </AuthCard>
+    );
+  }
 
-        {hasAllowlist ? (
-          enabledProviders.map((provider) => (
+  return (
+    <AuthCard
+      title="Finance Tracker"
+      description="Sign in to access your finances."
+      footer={
+        <>
+          {signupMode === "open" ? (
+            <span>
+              New here? <AuthLink href="/register">Create an account</AuthLink>
+            </span>
+          ) : null}
+          <AuthLink href="/forgot-password">Forgot your password?</AuthLink>
+        </>
+      }
+    >
+      {message ? <AuthNotice tone="error">{message}</AuthNotice> : null}
+
+      <CredentialsForm callbackUrl={redirectTo} />
+
+      {enabledProviders.length > 0 ? (
+        <>
+          <div className="flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="text-muted-foreground text-xs uppercase tracking-wider">
+              or
+            </span>
+            <Separator className="flex-1" />
+          </div>
+
+          {enabledProviders.map((provider) => (
             <form
               key={provider.id}
               action={async () => {
@@ -89,18 +122,9 @@ export default async function LoginPage({
                 providerName={provider.name}
               />
             </form>
-          ))
-        ) : (
-          <p
-            className="text-muted-foreground border-border rounded-md border border-dashed px-3 py-4 text-sm"
-            role="alert"
-          >
-            No authorized users are configured. Set{" "}
-            <code className="font-mono text-xs">AUTH_ALLOWED_EMAILS</code> in
-            the server environment before signing in.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          ))}
+        </>
+      ) : null}
+    </AuthCard>
   );
 }
