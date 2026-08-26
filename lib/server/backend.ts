@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getToken } from "next-auth/jwt";
 
 export { isUuid } from "@/lib/uuid";
 
@@ -16,24 +16,76 @@ export function backendBaseUrl(): string {
   return url.replace(/\/+$/, "");
 }
 
-/**
- * Rejects unauthenticated callers. The middleware already gates `/api/*`, but
- * these handlers proxy straight to a backend that has no auth of its own, so
- * they re-check rather than trusting a single layer.
- *
- * @returns a 401 `Response` to return immediately, or `null` when authorized.
- */
-export async function requireSession(): Promise<Response | null> {
-  const session = await auth();
+/** The bearer token a proxied call travels with, once the caller is known to be signed in. */
+export interface AuthorizedCaller {
+  accessToken: string;
+}
 
-  if (!session?.user) {
-    return Response.json(
-      { error: "Authentication required." },
-      { status: 401 },
+export type SessionCheck =
+  | { ok: true; caller: AuthorizedCaller }
+  | { ok: false; response: Response };
+
+const unauthorized = (): Response =>
+  Response.json({ error: "Authentication required." }, { status: 401 });
+
+/**
+ * Rejects unauthenticated callers and hands back the token the backend will be called with.
+ *
+ * Read straight from the encrypted session cookie rather than from `auth()`, because the
+ * access token is deliberately absent from the session object — exposing it there would
+ * serve it to the browser through `/api/auth/session`.
+ *
+ * The middleware already gates `/api/*`, but the backend now trusts a bearer token rather
+ * than the caller's position on the network, so these handlers still have to produce one.
+ */
+export async function requireSession(request: Request): Promise<SessionCheck> {
+  const secret = process.env.AUTH_SECRET;
+
+  if (!secret) {
+    console.error(
+      "[backend] AUTH_SECRET is not configured; cannot read the session.",
     );
+    return { ok: false, response: unauthorized() };
   }
 
-  return null;
+  const token = await readSessionToken(request, secret);
+  const accessToken = token?.apiSession?.accessToken;
+
+  // No token, or a session whose API credentials could not be renewed. Either way the
+  // caller has to sign in again; the reason is logged, not returned.
+  if (!accessToken) {
+    if (token?.error) {
+      console.error(`[backend] session present but unusable: ${token.error}`);
+    }
+
+    return { ok: false, response: unauthorized() };
+  }
+
+  return { ok: true, caller: { accessToken } };
+}
+
+/**
+ * Decodes the Auth.js session cookie.
+ *
+ * The cookie name is prefixed with `__Secure-` only over HTTPS, and Auth.js decides that
+ * from the *request* it wrote the cookie on. Inferring it from an environment variable
+ * instead gets it wrong behind a TLS-terminating proxy, where the app sees plain HTTP —
+ * and a wrong name means the cookie is simply not found, so a signed-in user gets 401 on
+ * every call with nothing to explain it.
+ *
+ * The forwarded protocol is the best available signal, and the other name is tried as a
+ * fallback rather than assumed away. A miss costs one failed decode, not a broken session.
+ */
+async function readSessionToken(request: Request, secret: string) {
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const likelySecure = forwardedProto
+    ? forwardedProto.split(",")[0]?.trim() === "https"
+    : new URL(request.url).protocol === "https:";
+
+  return (
+    (await getToken({ req: request, secret, secureCookie: likelySecure })) ??
+    (await getToken({ req: request, secret, secureCookie: !likelySecure }))
+  );
 }
 
 /** Client-safe messages for backend failures — never the backend's own body. */
@@ -64,10 +116,18 @@ export type BackendResult =
  */
 export async function callBackend(
   path: string,
-  init?: RequestInit,
+  init: RequestInit | undefined,
+  caller: AuthorizedCaller,
 ): Promise<BackendResult> {
   const url = `${backendBaseUrl()}${path}`;
-  const response = await fetch(url, init);
+
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      ...init?.headers,
+      Authorization: `Bearer ${caller.accessToken}`,
+    },
+  });
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "<unreadable body>");

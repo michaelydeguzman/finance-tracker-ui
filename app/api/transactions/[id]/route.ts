@@ -21,8 +21,8 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const unauthorized = await requireSession();
-  if (unauthorized) return unauthorized;
+  const session = await requireSession(request);
+  if (!session.ok) return session.response;
 
   try {
     const { id } = await context.params;
@@ -30,6 +30,8 @@ export async function GET(
 
     const result = await callBackend(
       `/v1/transactions/${encodeURIComponent(id)}`,
+      undefined,
+      session.caller,
     );
 
     return result.ok ? Response.json(result.data) : result.response;
@@ -42,8 +44,8 @@ export async function PUT(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const unauthorized = await requireSession();
-  if (unauthorized) return unauthorized;
+  const session = await requireSession(request);
+  if (!session.ok) return session.response;
 
   const wrongContentType = requireJsonContentType(request);
   if (wrongContentType) return wrongContentType;
@@ -64,6 +66,7 @@ export async function PUT(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildNormalizedTransactionUpsertBody(body)),
       },
+      session.caller,
     );
 
     return result.ok
@@ -78,8 +81,8 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const unauthorized = await requireSession();
-  if (unauthorized) return unauthorized;
+  const session = await requireSession(request);
+  if (!session.ok) return session.response;
 
   try {
     const { id } = await context.params;
@@ -88,6 +91,7 @@ export async function DELETE(
     const result = await callBackend(
       `/v1/transactions/${encodeURIComponent(id)}`,
       { method: "DELETE" },
+      session.caller,
     );
 
     return result.ok

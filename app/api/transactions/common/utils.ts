@@ -89,6 +89,9 @@ export function isValidTransactionDate(value: unknown): value is string | Date {
 /**
  * Normalized JSON body for POST/PUT to the backend — explicit fields only
  * (mirrors category routes that send trimmed, known keys).
+ *
+ * `createdBy` is deliberately not sent. The backend derives it from the caller's token now,
+ * and it used to be whatever the browser chose to claim.
  */
 export function buildNormalizedTransactionUpsertBody(
   body: Partial<UpsertTransactionRequest>,
@@ -99,7 +102,6 @@ export function buildNormalizedTransactionUpsertBody(
   amount: number;
   frequencyId: string | null;
   transactionDate: string;
-  createdBy: string;
 } {
   const rawDate = body.transactionDate!;
   const transactionDate =
@@ -117,7 +119,6 @@ export function buildNormalizedTransactionUpsertBody(
     amount: Number(body.amount),
     frequencyId: body.frequencyId ?? null,
     transactionDate,
-    createdBy: body.createdBy!.trim(),
   };
 }
 
@@ -148,10 +149,6 @@ export function validateTransactionBody(
       { error: "Transaction date is invalid." },
       { status: 400 },
     );
-  }
-
-  if (!body?.createdBy?.trim()) {
-    return Response.json({ error: "Created by is required." }, { status: 400 });
   }
 
   return null;

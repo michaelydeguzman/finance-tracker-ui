@@ -25,8 +25,14 @@ import { TransactionSidebar } from "./transaction-sidebar";
  */
 export function TransactionPageClient({
   categoryType,
+  createdBy,
 }: {
   categoryType: CategoryType.Income | CategoryType.Expense;
+  /**
+   * Who the optimistic row should say added it. Display only — the backend stamps the real
+   * value from the caller's token, so anything sent here would be ignored.
+   */
+  createdBy?: string;
 }): ReactElement {
   const view = TRANSACTION_VIEWS[categoryType];
   const {
@@ -140,6 +146,7 @@ export function TransactionPageClient({
       {/* Mounted only while open so each dialog seeds its form on mount. */}
       {addOpen ? (
         <AddTransactionDialog
+          {...(createdBy ? { createdBy } : {})}
           open
           onOpenChange={setAddOpen}
           categoryType={categoryType}

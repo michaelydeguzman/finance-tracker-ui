@@ -95,8 +95,13 @@ describe("validateTransactionBody", () => {
     expect(
       validateTransactionBody({ ...valid, categoryId: "" }),
     ).toBeInstanceOf(Response);
-    expect(
-      validateTransactionBody({ ...valid, createdBy: " " }),
-    ).toBeInstanceOf(Response);
+  });
+
+  it("accepts a body with no createdBy", () => {
+    // The backend stamps it from the caller's token now, so the browser neither sends it
+    // nor gets to claim one.
+    const { createdBy: _ignored, ...withoutCreatedBy } = valid;
+
+    expect(validateTransactionBody(withoutCreatedBy)).toBeNull();
   });
 });
