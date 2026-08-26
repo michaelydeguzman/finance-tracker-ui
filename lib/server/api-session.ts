@@ -138,13 +138,43 @@ export async function consumeMagicLink(
   return dto ? toApiSession(dto) : null;
 }
 
+/**
+ * Refreshes in flight, keyed by the token being spent.
+ *
+ * Refresh tokens are single use and rotate, so two requests arriving together near expiry
+ * would each spend the same token and one would always lose. Sharing the promise means
+ * they spend it once and both get the same new session.
+ *
+ * This is per server instance, not distributed: across several instances the race can
+ * still happen, which is why the caller also tolerates a lost race rather than treating it
+ * as a dead session. It removes the common case — concurrent requests from one browser
+ * hitting one instance — not the theoretical one.
+ */
+const refreshesInFlight = new Map<string, Promise<ApiSession | null>>();
+
 export async function refreshApiSession(
   refreshToken: string,
 ): Promise<ApiSession | null> {
-  const dto = await postAuth<AuthResultDto>("/v1/auth/refresh", {
-    token: refreshToken,
-  });
-  return dto ? toApiSession(dto) : null;
+  const alreadyRunning = refreshesInFlight.get(refreshToken);
+
+  if (alreadyRunning) {
+    return alreadyRunning;
+  }
+
+  const running = (async () => {
+    const dto = await postAuth<AuthResultDto>("/v1/auth/refresh", {
+      token: refreshToken,
+    });
+    return dto ? toApiSession(dto) : null;
+  })();
+
+  refreshesInFlight.set(refreshToken, running);
+
+  try {
+    return await running;
+  } finally {
+    refreshesInFlight.delete(refreshToken);
+  }
 }
 
 /**

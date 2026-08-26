@@ -48,17 +48,7 @@ export async function requireSession(request: Request): Promise<SessionCheck> {
     return { ok: false, response: unauthorized() };
   }
 
-  const token = await getToken({
-    req: request,
-    secret,
-    // Matches the cookie name Auth.js writes, which is prefixed only over HTTPS.
-    secureCookie: (
-      process.env.NEXTAUTH_URL ??
-      process.env.NEXT_PUBLIC_APP_URL ??
-      ""
-    ).startsWith("https://"),
-  });
-
+  const token = await readSessionToken(request, secret);
   const accessToken = token?.apiSession?.accessToken;
 
   // No token, or a session whose API credentials could not be renewed. Either way the
@@ -72,6 +62,30 @@ export async function requireSession(request: Request): Promise<SessionCheck> {
   }
 
   return { ok: true, caller: { accessToken } };
+}
+
+/**
+ * Decodes the Auth.js session cookie.
+ *
+ * The cookie name is prefixed with `__Secure-` only over HTTPS, and Auth.js decides that
+ * from the *request* it wrote the cookie on. Inferring it from an environment variable
+ * instead gets it wrong behind a TLS-terminating proxy, where the app sees plain HTTP —
+ * and a wrong name means the cookie is simply not found, so a signed-in user gets 401 on
+ * every call with nothing to explain it.
+ *
+ * The forwarded protocol is the best available signal, and the other name is tried as a
+ * fallback rather than assumed away. A miss costs one failed decode, not a broken session.
+ */
+async function readSessionToken(request: Request, secret: string) {
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const likelySecure = forwardedProto
+    ? forwardedProto.split(",")[0]?.trim() === "https"
+    : new URL(request.url).protocol === "https:";
+
+  return (
+    (await getToken({ req: request, secret, secureCookie: likelySecure })) ??
+    (await getToken({ req: request, secret, secureCookie: !likelySecure }))
+  );
 }
 
 /** Client-safe messages for backend failures — never the backend's own body. */

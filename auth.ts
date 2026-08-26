@@ -127,25 +127,31 @@ export const enabledProviders: ReadonlyArray<{ id: string; name: string }> =
 /** Refresh this long before expiry, so a request never starts with a token about to die. */
 const REFRESH_LEEWAY_MS = 60_000;
 
+/** Inside the renewal window, but the current access token is still usable. */
 const isExpiring = (session: ApiSession): boolean =>
   Date.now() >= session.accessTokenExpiresAt - REFRESH_LEEWAY_MS;
+
+/** Past expiry — the current access token will now be rejected. */
+const hasExpired = (session: ApiSession): boolean =>
+  Date.now() >= session.accessTokenExpiresAt;
 
 export const authConfig = {
   providers,
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
   pages: { signIn: "/login", error: "/login" },
   callbacks: {
-    signIn: ({ profile, account }) => {
-      // Credential flows already proved themselves against the API, which enforces its own
-      // rules; the allowlist gates SSO, where "has a Google account" is not authorization.
-      if (
-        account?.provider === PASSWORD_PROVIDER ||
-        account?.provider === MAGIC_LINK_PROVIDER
-      ) {
-        return true;
-      }
+    signIn: ({ profile, user }) => {
+      // Every provider is checked, credential flows included.
+      //
+      // An earlier version waved credentials through on the grounds that "the API enforces
+      // its own rules". It does not: the API has no allowlist, so that exemption meant
+      // anyone with an account could sign in even with the gate closed. Proving you hold a
+      // password is authentication; the allowlist is authorization, and it is this app's
+      // to enforce.
+      const email =
+        profile?.email ?? (typeof user?.email === "string" ? user.email : null);
 
-      return isEmailAllowed(profile?.email);
+      return isEmailAllowed(email);
     },
 
     jwt: async ({ token, account, profile, user }) => {
@@ -200,8 +206,17 @@ export const authConfig = {
       const refreshed = await refreshApiSession(existing.refreshToken);
 
       if (!refreshed) {
-        // The old credentials are not reusable — the refresh token rotates on use, and a
-        // failure may mean it was already spent. Drop them so nothing keeps trying.
+        // A failure here is ambiguous: the token may be dead, or a concurrent request on
+        // another instance may simply have spent it first. Those are indistinguishable —
+        // the API answers 401 to both.
+        //
+        // So only give up once the access token has actually lapsed. Inside the renewal
+        // window the request continues on a token that still works, and the next one tries
+        // again; signing the user out on what may have been a lost race is the worse error.
+        if (!hasExpired(existing)) {
+          return token;
+        }
+
         delete token.apiSession;
         token.error = "RefreshFailed";
         return token;

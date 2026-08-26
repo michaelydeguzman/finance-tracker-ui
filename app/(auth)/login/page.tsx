@@ -9,6 +9,7 @@ import {
   signupMode,
 } from "@/auth";
 import { Separator } from "@/components/ui/separator";
+import { isSafeCallbackUrl } from "@/lib/safe-callback-url";
 import { AuthCard, AuthLink, AuthNotice } from "../components/auth-card";
 import { CredentialsForm } from "../components/credentials-form";
 import { ProviderSignInButton } from "../components/provider-sign-in-button";
@@ -28,9 +29,6 @@ const ERROR_MESSAGES: Record<string, string> = {
     "We could not complete sign-in. If you already have an account with this email, sign in with your password first.",
   RefreshFailed: "Your session expired. Please sign in again.",
 };
-
-const isSafeCallbackUrl = (value: string): boolean =>
-  value.startsWith("/") && !value.startsWith("//");
 
 export default async function LoginPage({
   searchParams,

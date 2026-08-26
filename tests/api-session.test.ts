@@ -161,3 +161,58 @@ describe("configuration", () => {
     await expect(loginWithPassword("a@b.com", "pw")).resolves.toBeNull();
   });
 });
+
+describe("refreshApiSession", () => {
+  it("spends a refresh token once when several requests race for it", async () => {
+    // Refresh tokens are single use and rotate, so two concurrent requests near expiry
+    // would each spend the same one and a loser would be signed out spuriously.
+    let calls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async () => {
+        calls += 1;
+        // Resolve on a later tick so the second caller arrives mid-flight.
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        return okEnvelope(authResult);
+      }),
+    );
+    const { refreshApiSession } = await loadModule();
+
+    const [first, second] = await Promise.all([
+      refreshApiSession("a-refresh-token"),
+      refreshApiSession("a-refresh-token"),
+    ]);
+
+    expect(calls).toBe(1);
+    expect(first).toEqual(second);
+    expect(first?.accessToken).toBe(authResult.accessToken);
+  });
+
+  it("does not hold a failed refresh against the next attempt", async () => {
+    // The in-flight entry has to be cleared on failure too, or one network blip would
+    // wedge every later refresh of that token behind a rejected promise.
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("ECONNREFUSED"))
+      .mockResolvedValueOnce(okEnvelope(authResult));
+    vi.stubGlobal("fetch", fetchMock);
+    const { refreshApiSession } = await loadModule();
+
+    await expect(refreshApiSession("a-refresh-token")).resolves.toBeNull();
+    await expect(refreshApiSession("a-refresh-token")).resolves.not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not share a flight between different tokens", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okEnvelope(authResult));
+    vi.stubGlobal("fetch", fetchMock);
+    const { refreshApiSession } = await loadModule();
+
+    await Promise.all([
+      refreshApiSession("token-a"),
+      refreshApiSession("token-b"),
+    ]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});

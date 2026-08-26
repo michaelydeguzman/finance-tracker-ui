@@ -1,3 +1,4 @@
+import { signupMode } from "@/auth";
 import { requestRegistration } from "@/lib/server/api-session";
 import { requireJsonContentType, routeError } from "@/lib/server/backend";
 
@@ -9,6 +10,13 @@ import { requireJsonContentType, routeError } from "@/lib/server/backend";
  * that.
  */
 export async function POST(request: Request) {
+  // The /register page calls notFound() in allowlist mode, but hiding the page does not
+  // close the endpoint behind it: a direct POST here would still create an account, which
+  // the password provider would then happily sign in. The gate belongs on both.
+  if (signupMode !== "open") {
+    return new Response(null, { status: 404 });
+  }
+
   const wrongContentType = requireJsonContentType(request);
   if (wrongContentType) return wrongContentType;
 
