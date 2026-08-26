@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { isCategoryType, parseCategoryType } from "@/lib/category-type";
+import {
+  coerceCategoryType,
+  isCategoryType,
+  parseCategoryType,
+} from "@/lib/category-type";
 import { CategoryType } from "@/types/shared/enums";
 
 describe("isCategoryType", () => {
@@ -41,5 +45,25 @@ describe("parseCategoryType", () => {
     expect(parseCategoryType("2")).toBeUndefined();
     expect(parseCategoryType("Income")).toBeUndefined();
     expect(parseCategoryType("1.5")).toBeUndefined();
+  });
+});
+
+describe("coerceCategoryType", () => {
+  it("accepts the names the transaction and recurring endpoints send", () => {
+    expect(coerceCategoryType("Income")).toBe(CategoryType.Income);
+    expect(coerceCategoryType("expense")).toBe(CategoryType.Expense);
+    expect(coerceCategoryType("  Expense  ")).toBe(CategoryType.Expense);
+  });
+
+  it("accepts the numbers the category endpoint sends", () => {
+    expect(coerceCategoryType(0)).toBe(CategoryType.Income);
+    expect(coerceCategoryType("1")).toBe(CategoryType.Expense);
+  });
+
+  it("surfaces anything unrecognized as NaN rather than reading as Income", () => {
+    // `Number("Savings")` is NaN, which fails every comparison. Defaulting to 0
+    // would file an unknown type under Income and quietly skew the dashboard.
+    expect(coerceCategoryType("Savings")).toBeNaN();
+    expect(coerceCategoryType(undefined)).toBeNaN();
   });
 });

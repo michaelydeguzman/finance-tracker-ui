@@ -3,6 +3,7 @@
  * (same pattern as `lib/api/categories.ts`).
  */
 import { CategoryType } from "@/types/shared/enums";
+import { coerceCategoryType } from "@/lib/category-type";
 import {
   TRANSACTION_ENDPOINTS,
   transactionListUrl,
@@ -19,16 +20,7 @@ const mapTransaction = (transaction: TransactionResponse): Transaction => ({
   ...transaction,
   // Backend may serialize enums as numbers ("0"), names ("Income"), etc.
   // Normalize so dashboard comparisons against `CategoryType` work reliably.
-  categoryType: (() => {
-    const raw = transaction.categoryType as unknown;
-    if (typeof raw === "string") {
-      const s = raw.trim().toLowerCase();
-      if (s === "income") return CategoryType.Income;
-      if (s === "expense") return CategoryType.Expense;
-      return Number(raw) as CategoryType;
-    }
-    return Number(raw) as CategoryType;
-  })(),
+  categoryType: coerceCategoryType(transaction.categoryType),
   amount: Number(transaction.amount),
   transactionDate: new Date(transaction.transactionDate),
   createdAt: new Date(transaction.createdAt),
