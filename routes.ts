@@ -3,6 +3,7 @@ import {
   House,
   Inbox,
   LayoutDashboard,
+  Repeat,
   Settings,
 } from "lucide-react";
 import type { Route } from "./types/app";
@@ -22,6 +23,11 @@ export const ROUTES: readonly Route[] = [
     title: "Expenses",
     url: "/expenses",
     icon: Calendar,
+  },
+  {
+    title: "Recurring",
+    url: "/recurring",
+    icon: Repeat,
   },
   {
     title: "Categories",
