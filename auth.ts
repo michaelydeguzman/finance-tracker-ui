@@ -9,6 +9,7 @@ import {
   loginWithPassword,
   refreshApiSession,
 } from "@/lib/server/api-session";
+import { resolveSessionError } from "@/lib/session-state";
 
 /**
  * Emails allowed to sign in, from `AUTH_ALLOWED_EMAILS` (comma separated).
@@ -239,8 +240,16 @@ export const authConfig = {
         session.user.id = token.sub;
       }
 
-      if (token.error) {
-        session.error = token.error;
+      // One rule, shared with every other gatekeeper. A session carrying a user but no
+      // API credentials must not look signed in, or the middleware sends it to the
+      // dashboard, the dashboard's first fetch 401s, and apiFetch bounces it back here.
+      const error = resolveSessionError({
+        ...(token.error ? { error: token.error } : {}),
+        hasApiSession: token.apiSession !== undefined,
+      });
+
+      if (error) {
+        session.error = error;
       }
 
       return session;

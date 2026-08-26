@@ -28,6 +28,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   ExchangeFailed:
     "We could not complete sign-in. If you already have an account with this email, sign in with your password first.",
   RefreshFailed: "Your session expired. Please sign in again.",
+  NoApiSession: "Your sign-in is no longer valid. Please sign in again.",
 };
 
 export default async function LoginPage({
@@ -49,8 +50,14 @@ export default async function LoginPage({
   const redirectTo =
     callbackUrl && isSafeCallbackUrl(callbackUrl) ? callbackUrl : "/";
 
-  const message = error
-    ? (ERROR_MESSAGES[error] ?? "Sign in failed. Please try again.")
+  // A session that survived but lost its API credentials arrives here with no ?error=,
+  // because the middleware redirected rather than the sign-in flow failing. Falling back
+  // to the session's own reason means the page explains itself instead of showing a bare
+  // form to someone who thought they were already signed in.
+  const reason = error ?? session?.error;
+
+  const message = reason
+    ? (ERROR_MESSAGES[reason] ?? "Sign in failed. Please try again.")
     : null;
 
   if (!signInIsAvailable) {
