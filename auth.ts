@@ -9,10 +9,7 @@ import {
   loginWithPassword,
   refreshApiSession,
 } from "@/lib/server/api-session";
-import {
-  type ProviderSummary,
-  summarizeProviders,
-} from "@/lib/auth-providers";
+import { type ProviderSummary, summarizeProviders } from "@/lib/auth-providers";
 import { resolveSessionError } from "@/lib/session-state";
 
 /**
