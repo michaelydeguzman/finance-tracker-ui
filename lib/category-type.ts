@@ -22,3 +22,21 @@ export function parseCategoryType(
   const parsed = Number(raw);
   return isCategoryType(parsed) ? parsed : undefined;
 }
+
+/**
+ * Coerces whatever the API sent into a `CategoryType`.
+ *
+ * Transactions and recurring templates both serialize `categoryType` as a name
+ * ("Income" / "Expense") while categories serialize it as a number, so the
+ * client mappers have to accept either. Anything unrecognized is passed through
+ * `Number`, which surfaces as `NaN` rather than silently reading as Income.
+ */
+export function coerceCategoryType(raw: unknown): CategoryType {
+  if (typeof raw === "string") {
+    const name = raw.trim().toLowerCase();
+    if (name === "income") return CategoryType.Income;
+    if (name === "expense") return CategoryType.Expense;
+  }
+
+  return Number(raw) as CategoryType;
+}

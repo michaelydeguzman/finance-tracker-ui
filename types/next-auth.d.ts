@@ -1,8 +1,6 @@
 import type { DefaultSession } from "next-auth";
 import type { ApiSession } from "@/lib/server/api-session";
-
-/** Why the BFF has no usable API session, when it does not. */
-export type AuthError = "ExchangeFailed" | "RefreshFailed";
+import type { AuthError } from "@/lib/session-state";
 
 declare module "next-auth" {
   interface Session {

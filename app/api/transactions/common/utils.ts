@@ -1,5 +1,6 @@
 import type { UpsertTransactionRequest } from "@/app/transactions/types/transaction.api";
 import type { CategoryType } from "@/types/shared/enums";
+import { isIsoDateLike } from "@/lib/iso-date";
 
 /** Upper bound so a caller cannot ask the backend for an unbounded page. */
 export const MAX_PAGE_SIZE = 200;
@@ -67,24 +68,11 @@ export function buildBackendTransactionListSearchParams(
 /**
  * Accepts a `Date` or an ISO-8601 date / date-time string.
  *
- * The shape is checked before parsing because `new Date()` accepts a lot of
- * loose input — `new Date("5")` is a valid date in V8 — which would send
- * nonsense through to the backend.
+ * Re-exported under its established name so existing call sites and tests keep
+ * working; the implementation moved to `lib/iso-date.ts` when the recurring
+ * routes needed the same check.
  */
-const ISO_DATE_RE =
-  /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
-
-export function isValidTransactionDate(value: unknown): value is string | Date {
-  if (value instanceof Date) {
-    return !Number.isNaN(value.getTime());
-  }
-
-  if (typeof value !== "string" || !ISO_DATE_RE.test(value.trim())) {
-    return false;
-  }
-
-  return !Number.isNaN(new Date(value).getTime());
-}
+export { isIsoDateLike as isValidTransactionDate } from "@/lib/iso-date";
 
 /**
  * Normalized JSON body for POST/PUT to the backend — explicit fields only
@@ -144,7 +132,7 @@ export function validateTransactionBody(
     );
   }
 
-  if (!isValidTransactionDate(body?.transactionDate)) {
+  if (!isIsoDateLike(body?.transactionDate)) {
     return Response.json(
       { error: "Transaction date is invalid." },
       { status: 400 },
