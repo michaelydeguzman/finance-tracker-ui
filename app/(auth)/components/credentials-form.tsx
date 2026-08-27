@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { AuthLink } from "./auth-card";
 
 /**
  * Email-and-password sign-in, plus the option to be emailed a link instead.
@@ -102,6 +103,12 @@ export function CredentialsForm({ callbackUrl }: { callbackUrl: string }) {
           onChange={(event) => setPassword(event.target.value)}
           required
         />
+        <AuthLink
+          href="/forgot-password"
+          className="text-muted-foreground justify-self-start text-xs"
+        >
+          Forgot your password?
+        </AuthLink>
       </div>
 
       <Button type="submit" disabled={pending} aria-busy={pending}>

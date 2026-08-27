@@ -74,14 +74,11 @@ export default async function LoginPage({
       title="Finance Tracker"
       description="Sign in to access your finances."
       footer={
-        <>
-          {signupMode === "open" ? (
-            <span>
-              New here? <AuthLink href="/register">Create an account</AuthLink>
-            </span>
-          ) : null}
-          <AuthLink href="/forgot-password">Forgot your password?</AuthLink>
-        </>
+        signupMode === "open" ? (
+          <span>
+            New here? <AuthLink href="/register">Create an account</AuthLink>
+          </span>
+        ) : null
       }
     >
       {message ? <AuthNotice tone="error">{message}</AuthNotice> : null}
