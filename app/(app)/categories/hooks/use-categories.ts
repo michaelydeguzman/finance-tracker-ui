@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useOptimisticList } from "@/hooks/use-optimistic-list";
 import {
@@ -24,6 +24,12 @@ const typeLabel = (categoryType: CategoryType): string =>
   categoryType === CategoryType.Income ? "income" : "expense";
 
 export function useCategories(categoryType: CategoryType): UseCategoriesResult {
+  // `useOptimisticList`'s own `pending` only covers its write transitions, so
+  // without this the first fetch reported "not pending" and every consumer —
+  // the categories table, the transaction dialogs' category picker — rendered
+  // its empty state while the request was still in flight. Mirrors the same
+  // flag in `useTransactions`.
+  const [isFetching, setIsFetching] = useState(true);
   const { data, pending, setData, addItem, updateItem, deleteItem } =
     useOptimisticList<Category>(
       [],
@@ -44,6 +50,13 @@ export function useCategories(categoryType: CategoryType): UseCategoriesResult {
   useEffect(() => {
     let isActive = true;
 
+    // Deferred out of the effect body, like `useTransactions` does: a
+    // synchronous setState here triggers a cascading render (and the lint rule
+    // that says so).
+    Promise.resolve().then(() => {
+      if (isActive) setIsFetching(true);
+    });
+
     getCategoriesByType(categoryType)
       .then((result) => {
         if (isActive) setData(result);
@@ -58,6 +71,9 @@ export function useCategories(categoryType: CategoryType): UseCategoriesResult {
           // identical to "you have no categories yet".
           toast.error(`Could not load ${typeLabel(categoryType)} categories.`);
         }
+      })
+      .finally(() => {
+        if (isActive) setIsFetching(false);
       });
 
     return () => {
@@ -108,7 +124,7 @@ export function useCategories(categoryType: CategoryType): UseCategoriesResult {
 
   return {
     categories: data,
-    pending,
+    pending: pending || isFetching,
     addCategory: addCategoryHandler,
     updateCategory: updateCategoryHandler,
     // Confirmation lives in the UI layer (`ConfirmDeleteDialog`), not a
