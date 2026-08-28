@@ -1,33 +1,14 @@
 import type { UpsertCategoryRequest } from "@/app/(app)/categories/types/category.api";
-import {
-  callBackend,
-  isUuid,
-  requireJsonContentType,
-  requireSession,
-  routeError,
-} from "@/lib/server/backend";
+import { callBackend, defineRoute, requireUuid } from "@/lib/server/backend";
 import { isCategoryType } from "@/lib/category-type";
 
-// A factory, not a shared instance: a Response body can only be consumed once.
-const invalidId = () =>
-  Response.json({ error: "A valid category id is required." }, { status: 400 });
+type Params = { id: string };
 
-export async function PUT(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
-
-  const wrongContentType = requireJsonContentType(request);
-  if (wrongContentType) return wrongContentType;
-
-  try {
-    const { id } = await context.params;
-
-    if (!isUuid(id)) {
-      return invalidId();
-    }
+export const PUT = defineRoute<Params>(
+  { json: true },
+  async ({ request, caller, params }) => {
+    const invalidId = requireUuid(params.id, "category");
+    if (invalidId) return invalidId;
 
     const body = (await request.json()) as Partial<UpsertCategoryRequest>;
     const name = body?.name?.trim();
@@ -45,47 +26,32 @@ export async function PUT(
     }
 
     const result = await callBackend(
-      `/v1/categories/${encodeURIComponent(id)}`,
+      `/v1/categories/${encodeURIComponent(params.id)}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, categoryType }),
       },
-      session.caller,
+      caller,
     );
 
     return result.ok
       ? Response.json(result.data, { status: 200 })
       : result.response;
-  } catch (reason) {
-    return routeError("PUT /api/categories/[id]", reason);
-  }
-}
+  },
+);
 
-export async function DELETE(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
+export const DELETE = defineRoute<Params>({}, async ({ caller, params }) => {
+  const invalidId = requireUuid(params.id, "category");
+  if (invalidId) return invalidId;
 
-  try {
-    const { id } = await context.params;
+  const result = await callBackend(
+    `/v1/categories/${encodeURIComponent(params.id)}`,
+    { method: "DELETE" },
+    caller,
+  );
 
-    if (!isUuid(id)) {
-      return invalidId();
-    }
-
-    const result = await callBackend(
-      `/v1/categories/${encodeURIComponent(id)}`,
-      { method: "DELETE" },
-      session.caller,
-    );
-
-    return result.ok
-      ? Response.json({ message: "Category deleted successfully." })
-      : result.response;
-  } catch (reason) {
-    return routeError("DELETE /api/categories/[id]", reason);
-  }
-}
+  return result.ok
+    ? Response.json({ message: "Category deleted successfully." })
+    : result.response;
+});

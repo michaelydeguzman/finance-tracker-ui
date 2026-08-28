@@ -1,41 +1,23 @@
-import {
-  callBackend,
-  isUuid,
-  requireSession,
-  routeError,
-} from "@/lib/server/backend";
+import { callBackend, defineRoute, requireUuid } from "@/lib/server/backend";
 import type { RecurringTransition } from "@/lib/recurring-status";
 import { recurringConflictMessage } from "./utils";
 
 /**
- * Shared body of the pause / resume / cancel handlers.
+ * Builds the pause / resume / cancel handler, which differ only in that word.
  *
  * The three transitions are separate route files rather than one `[action]`
  * segment: the path is then a literal in every case, so no part of a request
  * can steer which backend endpoint is called.
  */
-export async function runRecurringTransition(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-  transition: RecurringTransition,
-): Promise<Response> {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
-
-  try {
-    const { id } = await context.params;
-
-    if (!isUuid(id)) {
-      return Response.json(
-        { error: "A valid recurring transaction id is required." },
-        { status: 400 },
-      );
-    }
+export function recurringTransitionRoute(transition: RecurringTransition) {
+  return defineRoute<{ id: string }>({}, async ({ caller, params }) => {
+    const invalidId = requireUuid(params.id, "recurring transaction");
+    if (invalidId) return invalidId;
 
     const result = await callBackend(
-      `/v1/recurring-transactions/${encodeURIComponent(id)}/${transition}`,
+      `/v1/recurring-transactions/${encodeURIComponent(params.id)}/${transition}`,
       { method: "POST" },
-      session.caller,
+      caller,
     );
 
     if (result.ok) return Response.json(result.data);
@@ -50,10 +32,5 @@ export async function runRecurringTransition(
     }
 
     return result.response;
-  } catch (reason) {
-    return routeError(
-      `POST /api/recurring-transactions/[id]/${transition}`,
-      reason,
-    );
-  }
+  });
 }

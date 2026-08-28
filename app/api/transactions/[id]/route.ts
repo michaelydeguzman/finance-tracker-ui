@@ -1,58 +1,30 @@
 import type { UpsertTransactionRequest } from "@/app/transactions/types/transaction.api";
-import {
-  callBackend,
-  isUuid,
-  requireJsonContentType,
-  requireSession,
-  routeError,
-} from "@/lib/server/backend";
+import { callBackend, defineRoute, requireUuid } from "@/lib/server/backend";
 import {
   buildNormalizedTransactionUpsertBody,
   validateTransactionBody,
 } from "../common/utils";
 
-const invalidId = () =>
-  Response.json(
-    { error: "A valid transaction id is required." },
-    { status: 400 },
+type Params = { id: string };
+
+export const GET = defineRoute<Params>({}, async ({ caller, params }) => {
+  const invalidId = requireUuid(params.id, "transaction");
+  if (invalidId) return invalidId;
+
+  const result = await callBackend(
+    `/v1/transactions/${encodeURIComponent(params.id)}`,
+    undefined,
+    caller,
   );
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
+  return result.ok ? Response.json(result.data) : result.response;
+});
 
-  try {
-    const { id } = await context.params;
-    if (!isUuid(id)) return invalidId();
-
-    const result = await callBackend(
-      `/v1/transactions/${encodeURIComponent(id)}`,
-      undefined,
-      session.caller,
-    );
-
-    return result.ok ? Response.json(result.data) : result.response;
-  } catch (reason) {
-    return routeError("GET /api/transactions/[id]", reason);
-  }
-}
-
-export async function PUT(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
-
-  const wrongContentType = requireJsonContentType(request);
-  if (wrongContentType) return wrongContentType;
-
-  try {
-    const { id } = await context.params;
-    if (!isUuid(id)) return invalidId();
+export const PUT = defineRoute<Params>(
+  { json: true },
+  async ({ request, caller, params }) => {
+    const invalidId = requireUuid(params.id, "transaction");
+    if (invalidId) return invalidId;
 
     const body = (await request.json()) as Partial<UpsertTransactionRequest>;
 
@@ -60,44 +32,32 @@ export async function PUT(
     if (invalid) return invalid;
 
     const result = await callBackend(
-      `/v1/transactions/${encodeURIComponent(id)}`,
+      `/v1/transactions/${encodeURIComponent(params.id)}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildNormalizedTransactionUpsertBody(body)),
       },
-      session.caller,
+      caller,
     );
 
     return result.ok
       ? Response.json(result.data, { status: 200 })
       : result.response;
-  } catch (reason) {
-    return routeError("PUT /api/transactions/[id]", reason);
-  }
-}
+  },
+);
 
-export async function DELETE(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
+export const DELETE = defineRoute<Params>({}, async ({ caller, params }) => {
+  const invalidId = requireUuid(params.id, "transaction");
+  if (invalidId) return invalidId;
 
-  try {
-    const { id } = await context.params;
-    if (!isUuid(id)) return invalidId();
+  const result = await callBackend(
+    `/v1/transactions/${encodeURIComponent(params.id)}`,
+    { method: "DELETE" },
+    caller,
+  );
 
-    const result = await callBackend(
-      `/v1/transactions/${encodeURIComponent(id)}`,
-      { method: "DELETE" },
-      session.caller,
-    );
-
-    return result.ok
-      ? Response.json({ message: "Transaction deleted successfully." })
-      : result.response;
-  } catch (reason) {
-    return routeError("DELETE /api/transactions/[id]", reason);
-  }
-}
+  return result.ok
+    ? Response.json({ message: "Transaction deleted successfully." })
+    : result.response;
+});
