@@ -13,11 +13,29 @@ npm run dev          # http://localhost:3000
 npm run test         # vitest — no infrastructure required
 npm run type-check   # tsc --noEmit
 npm run lint
+npm run format       # prettier --write .
 npm run build
 ```
 
 The dev server needs the .NET API running at `https://localhost:7203`. Without it, pages
 render but data calls fail.
+
+### What CI checks
+
+`.github/workflows/ci.yml` runs on every pull request and every push to `main`. Its four
+steps are `tsc --noEmit`, `npm run test`, `npm run lint`, then `npm run format:check`, each
+guarded by `if: !cancelled()` so one push reports every problem at once rather than one per
+re-run. `npm run build` is **not** in CI.
+
+Run all four before pushing. `lint` and `format:check` have separate jurisdictions — ESLint
+passing says nothing about whether Prettier is satisfied, and a formatting-only violation
+will pass every other step and still fail the build:
+
+```bash
+npm run type-check && npm run test && npm run lint && npm run format:check
+```
+
+Fix formatting with `npm run format`, never by hand.
 
 ## Environment files are git-ignored
 
@@ -29,7 +47,12 @@ boot until they exist.
 - `.env.development.local` — dev-only secrets plus `NODE_TLS_REJECT_UNAUTHORIZED=0`, which is
   what lets Node accept the .NET dev server's self-signed certificate. It must stay in this
   file so it can never reach a production build.
-- Sign-in is Google OAuth, email-and-password, or a magic link. `AUTH_SIGNUP_MODE` decides
+- Sign-in is Google OAuth, email-and-password, or a magic link, plus GitHub when
+  `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are both set — `auth.ts` pushes that provider
+  only if they exist. The sign-in page's SSO buttons come from `enabledProviders`, which
+  resolves each provider's **configured** id via `summarizeProviders`: Auth.js parks user
+  config under `.options` until core merges it, so reading `provider.id` directly yields the
+  factory default and renders duplicate buttons. `AUTH_SIGNUP_MODE` decides
   who may sign in: `allowlist` (default) honours `AUTH_ALLOWED_EMAILS`, and an empty list means
   nobody can sign in — intentional fail-closed behavior, not a bug. `open` lets anyone
   register and get their own tenant.
@@ -64,6 +87,27 @@ rules are still load-bearing:
 - Use `apiFetch` from `lib/api/config.ts` on the client; it unwraps the API's
   `{ success, message, data }` envelope and bounces expired sessions to `/login`.
 
+Two kinds of route handler live under `app/api/**`, and they are not interchangeable:
+
+- **Session-gated** — `transactions`, `categories`, `recurring-transactions`,
+  `recurring-options`. Call `requireSession` first, then `callBackend` with its `caller`.
+- **Deliberately session-less** — `app/api/account/**` (register, forgot-password,
+  reset-password, verify-email, magic-link). These are reached by people who cannot sign in
+  yet, so they take no session and must **gate themselves**: `account/register` re-checks
+  `signupMode !== "open"` and answers 404, because hiding the `/register` page does not
+  close the endpoint behind it.
+
+  They also answer **identically whether or not the address exists** — the API emails the
+  real owner rather than reporting the conflict. Do not add a more specific error message;
+  that would undo the account-enumeration defense on both sides of the boundary.
+
+One shared definition of "signed in": `resolveSessionError` in `lib/session-state.ts`. The
+middleware, the sign-in page, the app shell, and the BFF all consult it, and a cookie
+carrying a user but no API credentials must read as unusable in every one of them. When
+those gatekeepers disagree the result is an infinite redirect — middleware sends the browser
+to the dashboard, the dashboard's first fetch 401s, and `apiFetch` bounces it back to
+`/login`.
+
 The backend holds **real personal financial records**. Nothing here should generate bulk
 writes or destructive calls against it.
 
@@ -79,6 +123,20 @@ TypeScript runs strict, including `exactOptionalPropertyTypes` and `noUncheckedI
 
 Follow App Router conventions and co-locate route-specific code under `app/<route>/`:
 `components/`, `hooks/`, `types/`, `data/`.
+
+Three top-level folders under `app/`, only two of which are routes:
+
+- `app/(app)/` — the signed-in shell. Dashboard (`page.tsx`), income, expenses, recurring,
+  categories, households. Its `layout.tsx` provides the sidebar chrome and `error.tsx` is
+  the error boundary for everything inside it.
+- `app/(auth)/` — the signed-out pages: login, register, forgot-password, reset-password,
+  verify-email, magic-link, with their forms in `app/(auth)/components/`.
+- `app/transactions/` — **not a route.** It has no `page.tsx` by design; it holds the shared
+  Income/Expenses implementation that `(app)/income/page.tsx` and `(app)/expenses/page.tsx`
+  both render. Do not add a page here.
+
+`routes.ts` is the sidebar's nav model, not the router — a page can exist without an entry,
+and an entry can be marked `comingSoon`.
 
 Shared code lives in `components/`:
 
@@ -132,9 +190,26 @@ Shared code lives in `components/`:
 
 ## Testing
 
-Vitest suites live in `tests/` and cover pure logic (aggregates, validation, category types).
-They need no browser, network, or database, so they run anywhere — including from a cloud
-session. Run `npm run test`.
+Vitest suites live in `tests/` and cover pure logic (aggregates, validation, category types,
+session state, provider resolution). They need no browser, network, or database, so they run
+anywhere — including from a cloud session.
+
+```bash
+npm run test                             # vitest run
+npm run test:watch
+npx vitest run tests/currency.test.ts    # a single file
+npx vitest run -t "resolves the id and name"   # a single case, by name
+```
+
+`vitest.config.ts` sets `environment: "node"` and aliases `server-only` to
+`tests/stubs/server-only.ts`, because the real module throws when imported outside a Server
+Component and would otherwise make every server module untestable. Two consequences worth
+knowing before writing a test:
+
+- There is no DOM, so components are not unit-tested here. Test the logic, not the JSX.
+- Importing `@/auth` pulls in `next/server` and fails. To test something `auth.ts` does,
+  extract the logic into a pure module first — `lib/auth-providers.ts` exists for exactly
+  this reason.
 
 Add or update tests alongside behavior changes, with descriptive names stating the behavior
 under test.
