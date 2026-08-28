@@ -6,7 +6,6 @@ import {
   PauseIcon,
   PencilIcon,
   PlayIcon,
-  PlusIcon,
   RepeatIcon,
   Trash2Icon,
   XCircleIcon,
@@ -66,7 +65,6 @@ export interface RecurringListProps {
   busyIds: ReadonlySet<string>;
   /** Copy for the empty state — differs when a status filter is applied. */
   emptyText: string;
-  onAdd: () => void;
   onAction: (template: RecurringTransaction, action: RecurringAction) => void;
 }
 
@@ -75,7 +73,6 @@ export function RecurringList({
   pending,
   busyIds,
   emptyText,
-  onAdd,
   onAction,
 }: RecurringListProps) {
   // Unsorted is the API's own "soonest due first", which is the ordering that
@@ -87,7 +84,9 @@ export function RecurringList({
 
   return (
     <Card>
-      <div className="flex w-full items-center justify-between gap-2">
+      {/* pl-2 then -16px cancels SortButton's own px-4, matching the
+          Categories and Households list headers. */}
+      <div className="pl-2">
         <div className="ml-[-16px]">
           <SortButton
             label="Name"
@@ -96,11 +95,6 @@ export function RecurringList({
             className="text-md"
           />
         </div>
-
-        <Button variant="secondary" onClick={onAdd} disabled={pending}>
-          <PlusIcon />
-          Add
-        </Button>
       </div>
 
       {/* Never an empty state while the first fetch is still running. */}

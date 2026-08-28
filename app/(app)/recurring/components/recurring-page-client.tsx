@@ -109,7 +109,6 @@ export function RecurringPageClient(): ReactElement {
             ? "Nothing repeats yet. Add a template and each transaction will be created for you when it falls due."
             : `No ${statusFilter.toLowerCase()} recurring transactions.`
         }
-        onAdd={() => setAddOpen(true)}
         onAction={handleAction}
       />
 
