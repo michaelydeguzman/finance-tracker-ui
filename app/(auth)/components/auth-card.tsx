@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -29,7 +30,7 @@ export function AuthCard({
       <CardContent className="flex flex-col gap-4">
         {children}
         {footer ? (
-          <div className="text-muted-foreground flex flex-col gap-1 text-sm">
+          <div className="text-muted-foreground flex flex-col gap-1 text-xs">
             {footer}
           </div>
         ) : null}
@@ -66,14 +67,19 @@ export function AuthNotice({
 export function AuthLink({
   href,
   children,
+  className,
 }: {
   href: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
     <Link
       href={href}
-      className="hover:text-foreground underline underline-offset-4"
+      className={cn(
+        "hover:text-foreground underline underline-offset-4",
+        className,
+      )}
     >
       {children}
     </Link>

@@ -9,6 +9,7 @@ import {
   loginWithPassword,
   refreshApiSession,
 } from "@/lib/server/api-session";
+import { type ProviderSummary, summarizeProviders } from "@/lib/auth-providers";
 import { resolveSessionError } from "@/lib/session-state";
 
 /**
@@ -112,18 +113,18 @@ if (process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET) {
   providers.push(GitHub);
 }
 
-/** SSO providers the sign-in page should offer as buttons, derived from what is configured. */
-export const enabledProviders: ReadonlyArray<{ id: string; name: string }> =
-  providers
-    .map((provider) => {
-      const config = typeof provider === "function" ? provider() : provider;
-      return { id: config.id, name: config.name };
-    })
-    .filter(
-      (provider) =>
-        provider.id !== PASSWORD_PROVIDER &&
-        provider.id !== MAGIC_LINK_PROVIDER,
-    );
+/**
+ * SSO providers the sign-in page should offer as buttons, derived from what is configured.
+ *
+ * The credential flows are dropped because the page already renders them as its email and
+ * password form. They can only be told apart from an SSO provider once their configured id
+ * is resolved — see {@link summarizeProviders}.
+ */
+export const enabledProviders: ReadonlyArray<ProviderSummary> =
+  summarizeProviders(providers).filter(
+    (provider) =>
+      provider.id !== PASSWORD_PROVIDER && provider.id !== MAGIC_LINK_PROVIDER,
+  );
 
 /** Refresh this long before expiry, so a request never starts with a token about to die. */
 const REFRESH_LEEWAY_MS = 60_000;
