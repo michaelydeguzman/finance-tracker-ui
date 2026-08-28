@@ -15,6 +15,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["**/*.test.ts"],
-    exclude: ["node_modules/**", ".next/**", ".cursor/**"],
+    // .claude/ holds git worktrees — full checkouts of this repo. Without this the
+    // suite runs twice, half of it against whatever branch that worktree is on.
+    exclude: ["node_modules/**", ".next/**", ".cursor/**", ".claude/**"],
   },
 });
