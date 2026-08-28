@@ -1,10 +1,56 @@
+"use client";
+
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+/** Layers that legitimately hold the pointer-events lock while they are open. */
+const OPEN_LAYER_SELECTOR =
+  '[data-slot="dialog-content"], [data-radix-popper-content-wrapper], [role="listbox"]';
+
+/**
+ * Clears a pointer-events lock that Radix left behind, once nothing still needs it.
+ *
+ * Every Radix layer sets `body { pointer-events: none }` while open and restores
+ * whatever value it captured when it opened. A Select opened inside a Dialog
+ * captures the Dialog's own "none", so when the two close in the same commit the
+ * Select faithfully restores "none" and the Dialog is already gone — leaving the
+ * entire page unclickable with no visible modal to explain it.
+ *
+ * Closing a dialog by unmounting it (`{open ? <Dialog /> : null}`, which is how
+ * every dialog in this app is written) is what puts them in the same commit.
+ *
+ * Deferred by a tick so it runs after Radix's own teardown, and gated on no layer
+ * remaining so a dialog that is still legitimately open keeps its lock.
+ */
+function releaseStrandedPointerEvents(): () => void {
+  const timer = window.setTimeout(() => {
+    if (document.querySelector(OPEN_LAYER_SELECTOR)) return;
+    if (document.body.style.pointerEvents !== "none") return;
+
+    document.body.style.pointerEvents = "";
+  }, 0);
+
+  return () => window.clearTimeout(timer);
+}
+
 function Dialog(props: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  // Read rather than destructured: exactOptionalPropertyTypes forbids handing
+  // `open` back as `boolean | undefined`, so the spread has to stay intact.
+  const { open } = props;
+
+  // Closed while still mounted.
+  React.useEffect(() => {
+    if (open) return;
+
+    return releaseStrandedPointerEvents();
+  }, [open]);
+
+  // Unmounted outright, which is how this app closes its dialogs.
+  React.useEffect(() => () => void releaseStrandedPointerEvents(), []);
+
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
