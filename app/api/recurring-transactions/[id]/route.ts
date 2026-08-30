@@ -1,11 +1,5 @@
 import type { UpsertRecurringTransactionRequest } from "@/app/(app)/recurring/types/recurring.api";
-import {
-  callBackend,
-  isUuid,
-  requireJsonContentType,
-  requireSession,
-  routeError,
-} from "@/lib/server/backend";
+import { callBackend, defineRoute, requireUuid } from "@/lib/server/backend";
 import {
   RECURRING_INVALID_MESSAGE,
   buildNormalizedRecurringUpsertBody,
@@ -13,48 +7,26 @@ import {
   validateRecurringBody,
 } from "../common/utils";
 
-const invalidId = () =>
-  Response.json(
-    { error: "A valid recurring transaction id is required." },
-    { status: 400 },
+type Params = { id: string };
+
+export const GET = defineRoute<Params>({}, async ({ caller, params }) => {
+  const invalidId = requireUuid(params.id, "recurring transaction");
+  if (invalidId) return invalidId;
+
+  const result = await callBackend(
+    `/v1/recurring-transactions/${encodeURIComponent(params.id)}`,
+    undefined,
+    caller,
   );
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
+  return result.ok ? Response.json(result.data) : result.response;
+});
 
-  try {
-    const { id } = await context.params;
-    if (!isUuid(id)) return invalidId();
-
-    const result = await callBackend(
-      `/v1/recurring-transactions/${encodeURIComponent(id)}`,
-      undefined,
-      session.caller,
-    );
-
-    return result.ok ? Response.json(result.data) : result.response;
-  } catch (reason) {
-    return routeError("GET /api/recurring-transactions/[id]", reason);
-  }
-}
-
-export async function PUT(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
-
-  const wrongContentType = requireJsonContentType(request);
-  if (wrongContentType) return wrongContentType;
-
-  try {
-    const { id } = await context.params;
-    if (!isUuid(id)) return invalidId();
+export const PUT = defineRoute<Params>(
+  { json: true },
+  async ({ request, caller, params }) => {
+    const invalidId = requireUuid(params.id, "recurring transaction");
+    if (invalidId) return invalidId;
 
     const body =
       (await request.json()) as Partial<UpsertRecurringTransactionRequest>;
@@ -63,13 +35,13 @@ export async function PUT(
     if (invalid) return invalid;
 
     const result = await callBackend(
-      `/v1/recurring-transactions/${encodeURIComponent(id)}`,
+      `/v1/recurring-transactions/${encodeURIComponent(params.id)}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildNormalizedRecurringUpsertBody(body)),
       },
-      session.caller,
+      caller,
     );
 
     if (result.ok) return Response.json(result.data, { status: 200 });
@@ -92,45 +64,33 @@ export async function PUT(
     }
 
     return result.response;
-  } catch (reason) {
-    return routeError("PUT /api/recurring-transactions/[id]", reason);
+  },
+);
+
+export const DELETE = defineRoute<Params>({}, async ({ caller, params }) => {
+  const invalidId = requireUuid(params.id, "recurring transaction");
+  if (invalidId) return invalidId;
+
+  const result = await callBackend(
+    `/v1/recurring-transactions/${encodeURIComponent(params.id)}`,
+    { method: "DELETE" },
+    caller,
+  );
+
+  if (result.ok) {
+    return Response.json({
+      message: "Recurring transaction deleted successfully.",
+    });
   }
-}
 
-export async function DELETE(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
-
-  try {
-    const { id } = await context.params;
-    if (!isUuid(id)) return invalidId();
-
-    const result = await callBackend(
-      `/v1/recurring-transactions/${encodeURIComponent(id)}`,
-      { method: "DELETE" },
-      session.caller,
+  // The template has already generated transactions. That is the one refusal
+  // the user can do something about, so it says what to do instead.
+  if (result.response.status === 409) {
+    return Response.json(
+      { error: recurringConflictMessage("delete") },
+      { status: 409 },
     );
-
-    if (result.ok) {
-      return Response.json({
-        message: "Recurring transaction deleted successfully.",
-      });
-    }
-
-    // The template has already generated transactions. That is the one refusal
-    // the user can do something about, so it says what to do instead.
-    if (result.response.status === 409) {
-      return Response.json(
-        { error: recurringConflictMessage("delete") },
-        { status: 409 },
-      );
-    }
-
-    return result.response;
-  } catch (reason) {
-    return routeError("DELETE /api/recurring-transactions/[id]", reason);
   }
-}
+
+  return result.response;
+});

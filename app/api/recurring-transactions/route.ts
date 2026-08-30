@@ -1,10 +1,5 @@
 import type { UpsertRecurringTransactionRequest } from "@/app/(app)/recurring/types/recurring.api";
-import {
-  callBackend,
-  requireJsonContentType,
-  requireSession,
-  routeError,
-} from "@/lib/server/backend";
+import { callBackend, defineRoute } from "@/lib/server/backend";
 import { parseRecurringStatus } from "@/lib/recurring-status";
 import {
   RECURRING_INVALID_MESSAGE,
@@ -12,75 +7,55 @@ import {
   validateRecurringBody,
 } from "./common/utils";
 
-export async function GET(request: Request) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
+export const GET = defineRoute({}, async ({ request, caller }) => {
+  const { searchParams } = new URL(request.url);
 
-  try {
-    const { searchParams } = new URL(request.url);
+  const rawStatus = searchParams.get("status");
+  const status = parseRecurringStatus(rawStatus);
 
-    const rawStatus = searchParams.get("status");
-    const status = parseRecurringStatus(rawStatus);
-
-    if (rawStatus !== null && status === undefined) {
-      return Response.json(
-        { error: "Status must be Active, Paused or Cancelled." },
-        { status: 400 },
-      );
-    }
-
-    // Rebuilt from the parsed value rather than passed through, so only the
-    // exact enum name the API binds can reach the backend URL.
-    const qs = status === undefined ? "" : `?status=${status}`;
-
-    const result = await callBackend(
-      `/v1/recurring-transactions${qs}`,
-      undefined,
-      session.caller,
+  if (rawStatus !== null && status === undefined) {
+    return Response.json(
+      { error: "Status must be Active, Paused or Cancelled." },
+      { status: 400 },
     );
-
-    return result.ok ? Response.json(result.data) : result.response;
-  } catch (reason) {
-    return routeError("GET /api/recurring-transactions", reason);
   }
-}
 
-export async function POST(request: Request) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
+  // Rebuilt from the parsed value rather than passed through, so only the
+  // exact enum name the API binds can reach the backend URL.
+  const qs = status === undefined ? "" : `?status=${status}`;
 
-  const wrongContentType = requireJsonContentType(request);
-  if (wrongContentType) return wrongContentType;
+  const result = await callBackend(
+    `/v1/recurring-transactions${qs}`,
+    undefined,
+    caller,
+  );
 
-  try {
-    const body =
-      (await request.json()) as Partial<UpsertRecurringTransactionRequest>;
+  return result.ok ? Response.json(result.data) : result.response;
+});
 
-    const invalid = validateRecurringBody(body);
-    if (invalid) return invalid;
+export const POST = defineRoute({ json: true }, async ({ request, caller }) => {
+  const body =
+    (await request.json()) as Partial<UpsertRecurringTransactionRequest>;
 
-    const result = await callBackend(
-      "/v1/recurring-transactions",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildNormalizedRecurringUpsertBody(body)),
-      },
-      session.caller,
-    );
+  const invalid = validateRecurringBody(body);
+  if (invalid) return invalid;
 
-    if (result.ok) return Response.json(result.data, { status: 201 });
+  const result = await callBackend(
+    "/v1/recurring-transactions",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildNormalizedRecurringUpsertBody(body)),
+    },
+    caller,
+  );
 
-    // A rule only the backend can check — see RECURRING_INVALID_MESSAGE.
-    if (result.response.status === 400) {
-      return Response.json(
-        { error: RECURRING_INVALID_MESSAGE },
-        { status: 400 },
-      );
-    }
+  if (result.ok) return Response.json(result.data, { status: 201 });
 
-    return result.response;
-  } catch (reason) {
-    return routeError("POST /api/recurring-transactions", reason);
+  // A rule only the backend can check — see RECURRING_INVALID_MESSAGE.
+  if (result.response.status === 400) {
+    return Response.json({ error: RECURRING_INVALID_MESSAGE }, { status: 400 });
   }
-}
+
+  return result.response;
+});

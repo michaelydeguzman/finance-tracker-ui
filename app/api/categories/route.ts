@@ -1,83 +1,61 @@
 import type { UpsertCategoryRequest } from "@/app/(app)/categories/types/category.api";
-import {
-  callBackend,
-  requireJsonContentType,
-  requireSession,
-  routeError,
-} from "@/lib/server/backend";
+import { callBackend, defineRoute } from "@/lib/server/backend";
 import { isCategoryType, parseCategoryType } from "@/lib/category-type";
 
-export async function GET(request: Request) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
+export const GET = defineRoute({}, async ({ request, caller }) => {
+  const { searchParams } = new URL(request.url);
+  const rawCategoryType = searchParams.get("categoryType");
+  const categoryType = parseCategoryType(rawCategoryType);
 
-  try {
-    const { searchParams } = new URL(request.url);
-    const rawCategoryType = searchParams.get("categoryType");
-    const categoryType = parseCategoryType(rawCategoryType);
-
-    if (rawCategoryType !== null && categoryType === undefined) {
-      return Response.json(
-        { error: "Category type must be income or expense." },
-        { status: 400 },
-      );
-    }
-
-    const query = new URLSearchParams();
-    if (categoryType !== undefined) {
-      query.set("categoryType", String(categoryType));
-    }
-
-    const qs = query.toString();
-    const result = await callBackend(
-      qs ? `/v1/categories?${qs}` : "/v1/categories",
-      undefined,
-      session.caller,
+  if (rawCategoryType !== null && categoryType === undefined) {
+    return Response.json(
+      { error: "Category type must be income or expense." },
+      { status: 400 },
     );
-
-    return result.ok ? Response.json(result.data) : result.response;
-  } catch (reason) {
-    return routeError("GET /api/categories", reason);
   }
-}
 
-export async function POST(request: Request) {
-  const session = await requireSession(request);
-  if (!session.ok) return session.response;
+  const query = new URLSearchParams();
+  if (categoryType !== undefined) {
+    query.set("categoryType", String(categoryType));
+  }
 
-  const wrongContentType = requireJsonContentType(request);
-  if (wrongContentType) return wrongContentType;
+  const qs = query.toString();
+  const result = await callBackend(
+    qs ? `/v1/categories?${qs}` : "/v1/categories",
+    undefined,
+    caller,
+  );
 
-  try {
-    const body = (await request.json()) as Partial<UpsertCategoryRequest>;
-    const name = body?.name?.trim();
-    const categoryType = body?.categoryType;
+  return result.ok ? Response.json(result.data) : result.response;
+});
 
-    if (!name) {
-      return Response.json({ error: "Name is required." }, { status: 400 });
-    }
+export const POST = defineRoute({ json: true }, async ({ request, caller }) => {
+  const body = (await request.json()) as Partial<UpsertCategoryRequest>;
+  const name = body?.name?.trim();
+  const categoryType = body?.categoryType;
 
-    if (!isCategoryType(categoryType)) {
-      return Response.json(
-        { error: "Category type must be income or expense." },
-        { status: 400 },
-      );
-    }
+  if (!name) {
+    return Response.json({ error: "Name is required." }, { status: 400 });
+  }
 
-    const result = await callBackend(
-      "/v1/categories",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, categoryType }),
-      },
-      session.caller,
+  if (!isCategoryType(categoryType)) {
+    return Response.json(
+      { error: "Category type must be income or expense." },
+      { status: 400 },
     );
-
-    return result.ok
-      ? Response.json(result.data, { status: 201 })
-      : result.response;
-  } catch (reason) {
-    return routeError("POST /api/categories", reason);
   }
-}
+
+  const result = await callBackend(
+    "/v1/categories",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, categoryType }),
+    },
+    caller,
+  );
+
+  return result.ok
+    ? Response.json(result.data, { status: 201 })
+    : result.response;
+});

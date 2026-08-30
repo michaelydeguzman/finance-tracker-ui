@@ -1,6 +1,7 @@
 import { getToken } from "next-auth/jwt";
+import { isUuid } from "@/lib/uuid";
 
-export { isUuid } from "@/lib/uuid";
+export { isUuid };
 
 /**
  * Base URL of the .NET backend, without a trailing slash.
@@ -168,4 +169,109 @@ export function requireJsonContentType(request: Request): Response | null {
   }
 
   return null;
+}
+
+/** Resolved dynamic segments — `{ id }` for a `[id]` route, `{}` for a static one. */
+export type RouteParams = Record<string, string>;
+
+export interface RouteArgs<P extends RouteParams> {
+  request: Request;
+  /** The bearer token this call travels with. Pass it to `callBackend`. */
+  caller: AuthorizedCaller;
+  /** Awaited `context.params`; `{}` when the route has no dynamic segment. */
+  params: P;
+}
+
+export interface RouteConfig {
+  /** Rejects a body that is not `application/json`, before the handler runs. */
+  json?: boolean;
+}
+
+/**
+ * Wraps a session-gated `/api/**` handler in the preamble every one of them needs.
+ *
+ * Four things were repeated verbatim in each handler: reject the caller without a
+ * session, reject the wrong content type, resolve `context.params`, and turn an
+ * unexpected throw into an opaque 500. Written out per handler they are also four
+ * things a new route can silently omit — and omitting the first proxies an
+ * anonymous request to the backend. Here they are structural: a handler cannot run
+ * without a `caller`, because that is the only way it is given one.
+ *
+ * The handler returns the success response; `callBackend` already converts a failed
+ * backend call into a safe one, so `result.response` is passed straight through.
+ *
+ * Deliberately not used by `app/api/account/**`. Those routes are reached by people
+ * who cannot sign in yet, so they take no session and gate themselves instead.
+ *
+ * Declared as two overloads because Next type-checks what a route file exports: a
+ * static route's handler is called with the request alone, and one optional
+ * parameter covering both shapes is rejected as an invalid export.
+ */
+export function defineRoute(
+  config: RouteConfig,
+  handler: (args: RouteArgs<Record<string, never>>) => Promise<Response>,
+): (request: Request) => Promise<Response>;
+export function defineRoute<P extends RouteParams>(
+  config: RouteConfig,
+  handler: (args: RouteArgs<P>) => Promise<Response>,
+): (request: Request, context: { params: Promise<P> }) => Promise<Response>;
+export function defineRoute<P extends RouteParams>(
+  config: RouteConfig,
+  handler: (args: RouteArgs<P>) => Promise<Response>,
+) {
+  return async (
+    request: Request,
+    context?: { params: Promise<P> },
+  ): Promise<Response> => {
+    const session = await requireSession(request);
+    if (!session.ok) return session.response;
+
+    if (config.json) {
+      const wrongContentType = requireJsonContentType(request);
+      if (wrongContentType) return wrongContentType;
+    }
+
+    try {
+      const params = context ? await context.params : ({} as P);
+
+      return await handler({ request, caller: session.caller, params });
+    } catch (reason) {
+      return routeError(routeLabel(request), reason);
+    }
+  };
+}
+
+/**
+ * `POST /api/transactions` — the method and path of the request that failed.
+ *
+ * Derived rather than passed in. Every handler used to carry its own hand-written
+ * label, and a copied one names the wrong route for as long as nobody notices. The
+ * query string is left off so no request value reaches the log.
+ */
+function routeLabel(request: Request): string {
+  try {
+    return `${request.method} ${new URL(request.url).pathname}`;
+  } catch {
+    return `${request.method} <unparseable url>`;
+  }
+}
+
+/**
+ * Guards a path segment that must be a UUID; returns the 400 to send back, or null.
+ *
+ * Builds a fresh `Response` per call on purpose: a body can only be consumed once,
+ * so a shared instance would be empty the second time a route rejected an id.
+ */
+export function requireUuid(
+  value: string | undefined,
+  label: string,
+): Response | null {
+  if (isUuid(value)) {
+    return null;
+  }
+
+  return Response.json(
+    { error: `A valid ${label} id is required.` },
+    { status: 400 },
+  );
 }
