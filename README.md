@@ -9,7 +9,7 @@ A modular, theme-aware UI for managing personal finances. Built with the Next.js
 - **Component primitives**: Radix UI + shadcn-inspired wrappers in `components/ui`
 - **State & UX utilities**: `next-themes`, custom hooks in `hooks/`, and optimistic-list utilities
 - **Data viz**: Recharts
-- **Auth**: Auth.js (NextAuth v5) with Google SSO and a JWT session cookie
+- **Auth**: Auth.js (NextAuth v5) — Google, GitHub, email and password, or a magic link — over an encrypted session cookie carrying the API's access and refresh tokens
 
 ## Styling system
 
@@ -60,20 +60,35 @@ constants.ts        # Global constants leveraged across modules
 
 ## Authentication
 
-Every page and every `/api/*` route requires a signed-in user. The Next.js app
-is the only auth boundary — the .NET backend has none of its own, so the BFF
-routes in `app/api/**` re-check the session before proxying.
+Sign-in is Auth.js (NextAuth v5), with four ways in: Google OAuth, email and
+password, a magic link, and GitHub when `AUTH_GITHUB_ID` and
+`AUTH_GITHUB_SECRET` are both set. The login page renders whatever is
+configured.
 
-Sign-in is Google SSO through Auth.js. Two things gate access:
+Two layers enforce access, and they are not redundant:
 
-1. **Identity** — Google proves who the visitor is.
-2. **Authorization** — `AUTH_ALLOWED_EMAILS` decides who is allowed in. SSO on
-   its own would let _any_ Google account reach the household ledger. With the
-   list empty nobody can sign in; the login page says so rather than failing
-   silently.
+1. **This app** — `auth.ts` and `middleware.ts` gate every page and every
+   `/api/*` route. The exceptions are the signed-out account pages and
+   `app/api/account/**`, which exist precisely for people who cannot sign in
+   yet, so they gate themselves instead.
+2. **The .NET API** — it authenticates and scopes by itself. It requires a
+   bearer token and filters every query to that token's user, so reaching it
+   directly no longer means reading everyone's finances. The BFF is no longer
+   the only thing standing between the browser and the data.
 
-Adding a second provider (GitHub is wired up) only needs its env vars set; the
-login page renders whatever is configured.
+`AUTH_SIGNUP_MODE` decides who may sign in:
+
+- `allowlist` (the default) honours `AUTH_ALLOWED_EMAILS`. An empty list means
+  nobody can sign in — fail-closed on purpose, and the login page says so rather
+  than failing silently.
+- `open` lets anyone register and get their own tenant.
+
+Opening sign-up is a deliberate choice rather than a side effect of clearing a
+variable.
+
+The API's access and refresh tokens live in the encrypted session cookie and are
+deliberately **absent from the session object**, so `/api/auth/session` never
+serves them to the browser.
 
 ### Google OAuth setup
 
@@ -83,13 +98,18 @@ login page renders whatever is configured.
    (and the equivalent for each deployed host).
 3. Put the client id and secret in `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`.
 4. Generate a session key with `npx auth secret` and set `AUTH_SECRET`.
-5. List the permitted emails in `AUTH_ALLOWED_EMAILS`.
+5. Leave `AUTH_SIGNUP_MODE=allowlist` and list the permitted addresses in
+   `AUTH_ALLOWED_EMAILS`, or set `AUTH_SIGNUP_MODE=open` to let anyone register.
+6. Set `API_BFF_SECRET` to match `Auth:BffSharedSecret` in the API's
+   user-secrets. It guards the SSO exchange endpoint, which mints a session from
+   a provider subject rather than a credential — anything holding it can sign in
+   as anyone.
 
 ## Getting started
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in the auth values
+cp .env.example .env         # base config; dev-only secrets go in .env.development.local
 npm run dev
 ```
 
@@ -128,11 +148,11 @@ Run `npm run test` before pushing, and ensure `npm run lint` + `npm run type-che
 
 Deploy to any Next.js-compatible platform (Vercel recommended). After `npm run build`, start the server with `npm run start`.
 
-Set every variable from `.env.example` in the hosting platform before promoting a build — in particular `AUTH_SECRET`, the Google client credentials, and `AUTH_ALLOWED_EMAILS`. Add the deployed callback URL (`https://<host>/api/auth/callback/google`) to the Google OAuth client. `NODE_TLS_REJECT_UNAUTHORIZED` must never be set outside local development.
+Set every variable from `.env.example` in the hosting platform before promoting a build — in particular `AUTH_SECRET`, the Google client credentials, `API_BFF_SECRET`, and — if you are not opening sign-up with `AUTH_SIGNUP_MODE=open` — `AUTH_ALLOWED_EMAILS`. Add the deployed callback URL (`https://<host>/api/auth/callback/google`) to the Google OAuth client. `NODE_TLS_REJECT_UNAUTHORIZED` must never be set outside local development.
 
 ## Contributing tips
 
-- Follow the naming, structure, and styling conventions described in `.github/copilot-instructions.md`.
+- Follow the naming, structure, and styling conventions in [CLAUDE.md](CLAUDE.md), which is the single source of truth for conventions in this repo.
 - Keep feature folders self-contained (components + data + hooks + types).
 - Prefer barrel exports (`index.ts`) when sharing modules broadly.
 - Do not create `components/common/` or `components/buttons/` — shared pieces go in `components/shared/`.
