@@ -11,7 +11,8 @@ import type { HouseholdInvitation } from "@/types/household.api";
 
 interface HouseholdInvitesProps {
   invitations: HouseholdInvitation[];
-  onInvite: (email: string) => void;
+  /** Resolves to whether the invitation was actually sent. */
+  onInvite: (email: string) => Promise<boolean>;
   onRevoke: (invitationId: string) => void;
   pending: boolean;
 }
@@ -31,9 +32,12 @@ export default function HouseholdInvites({
 }: HouseholdInvitesProps) {
   const [email, setEmail] = useState("");
 
-  const submit = (): void => {
-    onInvite(email);
-    setEmail("");
+  const submit = async (): Promise<void> => {
+    // Same reason as the create form: a rejected address — already a member, already
+    // invited, malformed — must still be on screen to correct.
+    if (await onInvite(email)) {
+      setEmail("");
+    }
   };
 
   return (
@@ -44,7 +48,7 @@ export default function HouseholdInvites({
         className="flex max-w-md flex-col gap-2 sm:flex-row"
         onSubmit={(event) => {
           event.preventDefault();
-          submit();
+          void submit();
         }}
       >
         <Input

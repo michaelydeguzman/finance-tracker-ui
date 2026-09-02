@@ -11,7 +11,8 @@ import type { Household } from "@/types/household.api";
 
 interface HouseholdCardProps {
   household: Household;
-  onRename: (name: string) => void;
+  /** Resolves to whether the rename actually took. */
+  onRename: (name: string) => Promise<boolean>;
   onLeave: () => void;
   pending: boolean;
 }
@@ -29,12 +30,18 @@ export default function HouseholdCard({
   const isEditing = draftName !== null;
   const isLastMember = household.members.length === 1;
 
-  const commitRename = (): void => {
-    if (draftName !== null && draftName.trim() !== household.name) {
-      onRename(draftName);
+  const commitRename = async (): Promise<void> => {
+    if (draftName === null || draftName.trim() === household.name) {
+      setDraftName(null);
+      return;
     }
 
-    setDraftName(null);
+    // The editor stays open on failure. Closing it would discard the edit and snap the
+    // heading back to the old name, which reads as "saved" for a rename that did not
+    // happen.
+    if (await onRename(draftName)) {
+      setDraftName(null);
+    }
   };
 
   return (
@@ -49,11 +56,15 @@ export default function HouseholdCard({
               maxLength={HOUSEHOLD_NAME_MAX_LENGTH}
               aria-label="Household name"
               onKeyDown={(event) => {
-                if (event.key === "Enter") commitRename();
+                if (event.key === "Enter") void commitRename();
                 if (event.key === "Escape") setDraftName(null);
               }}
             />
-            <Button size="sm" onClick={commitRename} disabled={pending}>
+            <Button
+              size="sm"
+              onClick={() => void commitRename()}
+              disabled={pending}
+            >
               <CheckIcon aria-hidden="true" />
               <span className="sr-only">Save name</span>
             </Button>

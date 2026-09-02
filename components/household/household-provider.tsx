@@ -36,14 +36,21 @@ export interface UseHouseholdResult {
   loading: boolean;
   /** True while a mutation is in flight, so buttons can be disabled rather than double-fired. */
   pending: boolean;
-  create: (name: string) => Promise<void>;
-  rename: (name: string) => Promise<void>;
-  invite: (email: string) => Promise<void>;
-  revoke: (invitationId: string) => Promise<void>;
-  removeMember: (userId: string) => Promise<void>;
-  leave: () => Promise<void>;
-  accept: (invitationId: string) => Promise<void>;
-  decline: (invitationId: string) => Promise<void>;
+  /**
+   * Every mutation resolves to whether it actually worked.
+   *
+   * Errors are reported here as toasts rather than thrown, so a caller cannot learn the
+   * outcome from the promise settling — and a form that clears its input on the strength
+   * of that would throw away what the user typed every time the server said no.
+   */
+  create: (name: string) => Promise<boolean>;
+  rename: (name: string) => Promise<boolean>;
+  invite: (email: string) => Promise<boolean>;
+  revoke: (invitationId: string) => Promise<boolean>;
+  removeMember: (userId: string) => Promise<boolean>;
+  leave: () => Promise<boolean>;
+  accept: (invitationId: string) => Promise<boolean>;
+  decline: (invitationId: string) => Promise<boolean>;
 }
 
 const errorMessage = (reason: unknown, fallback: string): string =>
@@ -127,16 +134,18 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
       action: () => Promise<unknown>,
       success: string,
       fallbackError: string,
-    ): Promise<void> => {
+    ): Promise<boolean> => {
       setPending(true);
 
       try {
         await action();
         await load();
         toast.success(success);
+        return true;
       } catch (reason) {
         console.error(fallbackError, reason);
         toast.error(errorMessage(reason, fallbackError));
+        return false;
       } finally {
         setPending(false);
       }
@@ -145,7 +154,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   );
 
   const create = useCallback(
-    async (name: string): Promise<void> => {
+    async (name: string): Promise<boolean> => {
       // One household per person. The API answers 409, but `callBackend` replaces its
       // body with a generic conflict line, so a click that got that far would report
       // nothing the user could act on.
@@ -156,17 +165,17 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
 
       if (blocked) {
         toast.error(blocked);
-        return;
+        return false;
       }
 
       const validated = validateHouseholdName(name);
 
       if (!validated.ok) {
         toast.error(validated.error);
-        return;
+        return false;
       }
 
-      await run(
+      return run(
         () => createHousehold({ name: validated.value }),
         `"${validated.value}" is ready. Invite the people you share with.`,
         "Could not create the household.",
@@ -176,15 +185,15 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   );
 
   const rename = useCallback(
-    async (name: string): Promise<void> => {
+    async (name: string): Promise<boolean> => {
       const validated = validateHouseholdName(name);
 
       if (!validated.ok) {
         toast.error(validated.error);
-        return;
+        return false;
       }
 
-      await run(
+      return run(
         () => renameHousehold({ name: validated.value }),
         "Household renamed.",
         "Could not rename the household.",
@@ -194,15 +203,15 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   );
 
   const invite = useCallback(
-    async (email: string): Promise<void> => {
+    async (email: string): Promise<boolean> => {
       const validated = validateInvitedEmail(email);
 
       if (!validated.ok) {
         toast.error(validated.error);
-        return;
+        return false;
       }
 
-      await run(
+      return run(
         () => inviteHouseholdMember({ email: validated.value }),
         `Invitation sent to ${validated.value}.`,
         "Could not send the invitation.",
@@ -212,8 +221,8 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   );
 
   const revoke = useCallback(
-    async (invitationId: string): Promise<void> => {
-      await run(
+    async (invitationId: string): Promise<boolean> => {
+      return run(
         () => revokeHouseholdInvitation(invitationId),
         "Invitation withdrawn.",
         "Could not withdraw the invitation.",
@@ -223,8 +232,8 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   );
 
   const removeMember = useCallback(
-    async (userId: string): Promise<void> => {
-      await run(
+    async (userId: string): Promise<boolean> => {
+      return run(
         () => removeHouseholdMember(userId),
         "They no longer share this household.",
         "Could not remove them from the household.",
@@ -233,8 +242,8 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
     [run],
   );
 
-  const leave = useCallback(async (): Promise<void> => {
-    await run(
+  const leave = useCallback(async (): Promise<boolean> => {
+    return run(
       () => leaveHousehold(),
       "You have left the household. Your records are yours alone again.",
       "Could not leave the household.",
@@ -242,7 +251,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   }, [run]);
 
   const accept = useCallback(
-    async (invitationId: string): Promise<void> => {
+    async (invitationId: string): Promise<boolean> => {
       // The same rule from the other direction, and the reason the Accept button is
       // disabled rather than merely discouraged: accepting a second invitation cannot
       // succeed, and a record carries one household id, not two.
@@ -253,10 +262,10 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
 
       if (blocked) {
         toast.error(blocked);
-        return;
+        return false;
       }
 
-      await run(
+      return run(
         () => acceptInvitation(invitationId),
         "You are sharing finances with this household now.",
         "Could not accept the invitation.",
@@ -266,8 +275,8 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   );
 
   const decline = useCallback(
-    async (invitationId: string): Promise<void> => {
-      await run(
+    async (invitationId: string): Promise<boolean> => {
+      return run(
         () => declineInvitation(invitationId),
         "Invitation declined.",
         "Could not decline the invitation.",

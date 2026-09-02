@@ -56,15 +56,12 @@ export default function HouseholdClient() {
       />
 
       {household === null ? (
-        <CreateHouseholdCard
-          onCreate={(name) => void create(name)}
-          pending={pending}
-        />
+        <CreateHouseholdCard onCreate={create} pending={pending} />
       ) : (
         <>
           <HouseholdCard
             household={household}
-            onRename={(name) => void rename(name)}
+            onRename={rename}
             onLeave={() => void leave()}
             pending={pending}
           />
@@ -82,7 +79,7 @@ export default function HouseholdClient() {
               <div className="flex-1">
                 <HouseholdInvites
                   invitations={household.pendingInvitations}
-                  onInvite={(email) => void invite(email)}
+                  onInvite={invite}
                   onRevoke={(id) => void revoke(id)}
                   pending={pending}
                 />

@@ -9,7 +9,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { HOUSEHOLD_NAME_MAX_LENGTH } from "@/lib/household";
 
 interface CreateHouseholdCardProps {
-  onCreate: (name: string) => void;
+  /** Resolves to whether the household was actually created. */
+  onCreate: (name: string) => Promise<boolean>;
   pending: boolean;
 }
 
@@ -24,9 +25,13 @@ export default function CreateHouseholdCard({
 }: CreateHouseholdCardProps) {
   const [name, setName] = useState("");
 
-  const submit = (): void => {
-    onCreate(name);
-    setName("");
+  const submit = async (): Promise<void> => {
+    // Cleared only once the household exists. Clearing on submit throws the name away
+    // every time the server says no — a one-household-per-person conflict, a dropped
+    // connection — and leaves the user retyping something they already typed correctly.
+    if (await onCreate(name)) {
+      setName("");
+    }
   };
 
   return (
@@ -48,7 +53,7 @@ export default function CreateHouseholdCard({
           className="flex max-w-md flex-col gap-2 pt-2 sm:flex-row"
           onSubmit={(event) => {
             event.preventDefault();
-            submit();
+            void submit();
           }}
         >
           <Input
