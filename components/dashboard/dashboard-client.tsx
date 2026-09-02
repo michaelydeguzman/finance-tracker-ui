@@ -68,6 +68,31 @@ const barChartConfig = {
   Savings: { label: "Savings", color: "var(--chart-3)" },
 } satisfies ChartConfig;
 
+/**
+ * Tooltip row for the category pies: colour swatch, category name, amount.
+ *
+ * `ChartTooltipContent` treats `formatter` as a replacement for its whole row,
+ * not just the number, so a formatter returning only the amount throws the
+ * category name away. This returns the full row, mirroring the markup of the
+ * default one it stands in for.
+ */
+const pieTooltipFormatter: NonNullable<
+  React.ComponentProps<typeof ChartTooltipContent>["formatter"]
+> = (value, name, item) => (
+  <>
+    <div
+      className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+      style={{ backgroundColor: item.payload?.fill }}
+    />
+    <div className="flex flex-1 items-center justify-between gap-2 leading-none">
+      <span className="text-muted-foreground">{name}</span>
+      <span className="text-foreground font-mono font-medium tabular-nums">
+        {formatCurrency(Number(value))}
+      </span>
+    </div>
+  </>
+);
+
 function toDateInputValue(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -373,8 +398,8 @@ export default function DashboardClient(): React.ReactNode {
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
-                        formatter={(val) => formatCurrency(Number(val))}
-                        nameKey="name"
+                        hideLabel
+                        formatter={pieTooltipFormatter}
                       />
                     }
                   />
@@ -419,8 +444,8 @@ export default function DashboardClient(): React.ReactNode {
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
-                        formatter={(val) => formatCurrency(Number(val))}
-                        nameKey="name"
+                        hideLabel
+                        formatter={pieTooltipFormatter}
                       />
                     }
                   />
