@@ -14,13 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CategoryCombobox } from "@/components/shared/category-combobox";
 import type { Category } from "@/app/(app)/categories/types/category.model";
 import type { Transaction } from "../types/transaction.model";
 import type { TransactionInput } from "../hooks/use-transactions";
@@ -194,28 +188,18 @@ export function AddTransactionDialog({
             >
               Category
             </label>
-            <Select
+            <CategoryCombobox
+              id="transaction-category"
               value={categoryId}
-              onValueChange={(v) => setCategoryId(v)}
+              onValueChange={setCategoryId}
+              categories={categories}
               disabled={categoriesPending}
-            >
-              <SelectTrigger id="transaction-category">
-                <SelectValue
-                  placeholder={
-                    categoriesPending
-                      ? "Loading categories..."
-                      : "Select a category"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder={
+                categoriesPending
+                  ? "Loading categories..."
+                  : "Select a category"
+              }
+            />
             {categoriesPending && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Spinner className="size-3" />
