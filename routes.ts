@@ -38,6 +38,5 @@ export const ROUTES: readonly Route[] = [
     title: "Households",
     url: "/households",
     icon: House,
-    comingSoon: true,
   },
 ];

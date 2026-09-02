@@ -87,6 +87,11 @@ rules are still load-bearing:
 - Use `apiFetch` from `lib/api/config.ts` on the client; it unwraps the API's
   `{ success, message, data }` envelope and bounces expired sessions to `/login`.
 
+Households are session-gated like the rest, with one thing worth knowing: `GET
+/api/households/me` answers **200 with a null body** for someone in no household. That is
+the normal state for most accounts, not a miss, so do not turn it into a 404 — every caller
+would then have to treat "you have no household" as a failure.
+
 Two kinds of route handler live under `app/api/**`, and they are not interchangeable:
 
 - **Session-gated** — `transactions`, `categories`, `recurring-transactions`,
@@ -170,6 +175,23 @@ Shared code lives in `components/`:
 - **Income and Expenses share one implementation** —
   `app/transactions/components/transaction-page-client.tsx`, parameterized by `CategoryType`.
   Differences belong in `app/transactions/config/views.tsx`, never in a duplicated component tree.
+
+## Households
+
+A household is a group of people who share one set of financial records. The API widens its
+own tenancy filter to admit them, so **income, expenses, recurring and the dashboard need no
+household code at all** — they simply return more rows once you are in one. Only
+`app/(app)/households/` knows the concept exists.
+
+- Membership changes by invitation, never by adding someone: joining publishes the joiner's
+  records to everyone already in the household, so it has to be their own answer.
+- `lib/household.ts` holds the validation rules, deliberately free of `fetch`, React and
+  `server-only` so both the forms and the BFF routes can use them — and so they can be
+  unit-tested. Both sides validate, and they have to agree: a name the form accepts and the
+  route rejects is a submit button that silently does nothing.
+- `useHousehold` refetches after every mutation rather than updating optimistically. Every
+  action here changes who can see the money, and showing a member as removed before the
+  server agrees would be a lie about access, not a cosmetic reorder.
 
 ## Data loading and mutations
 
