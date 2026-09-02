@@ -145,12 +145,12 @@ and an entry can be marked `comingSoon`.
 
 Shared code lives in `components/`:
 
-| Folder                  | Contents                                                                       |
-| ----------------------- | ------------------------------------------------------------------------------ |
-| `shared/`               | Generic reusable UI — `Card`, `PageTitle`, `SortButton`, `ConfirmDeleteDialog` |
-| `layout/`               | Layout primitives — `PageWithSidebar`, `StickyRightSidebar`                    |
-| `header/`, `dashboard/` | Feature-area components                                                        |
-| `ui/`                   | shadcn/ui primitives                                                           |
+| Folder                                | Contents                                                                       |
+| ------------------------------------- | ------------------------------------------------------------------------------ |
+| `shared/`                             | Generic reusable UI — `Card`, `PageTitle`, `SortButton`, `ConfirmDeleteDialog` |
+| `layout/`                             | Layout primitives — `PageWithSidebar`, `StickyRightSidebar`                    |
+| `header/`, `dashboard/`, `household/` | Feature-area components                                                        |
+| `ui/`                                 | shadcn/ui primitives                                                           |
 
 - **Do not create `common/` or `buttons/` folders** — use `shared/`.
 - Prefer the shadcn CLI (or its MCP server) to add `ui/` primitives. Manual edits are fine
@@ -180,11 +180,25 @@ Shared code lives in `components/`:
 
 A household is a group of people who share one set of financial records. The API widens its
 own tenancy filter to admit them, so **income, expenses, recurring and the dashboard need no
-household code at all** — they simply return more rows once you are in one. Only
-`app/(app)/households/` knows the concept exists.
+household code at all** — they simply return more rows once you are in one.
 
+- `HouseholdProvider` (`components/household/`) is mounted in `app/(app)/layout.tsx` and owns
+  the shell's only copy of the household state; `useHousehold` reads it. It lives there rather
+  than on the households page because `HouseholdBanner` names the household above every page's
+  title while the households page rewrites that same state — two independent fetches would let
+  the banner keep naming a household the user has just left.
+- The banner exists because the widened filter is otherwise invisible: the dashboard just
+  returns more rows, with nothing on screen to say whose money you are looking at. It renders
+  nothing while loading and nothing for someone on their own.
+- The `<main>` gap lives on an inner `div`, not on `<main>` itself, so the banner can sit
+  close to the title while pages keep the spacing they were written against.
 - Membership changes by invitation, never by adding someone: joining publishes the joiner's
   records to everyone already in the household, so it has to be their own answer.
+- **One household per person**, checked in three places on purpose: the API is the authority
+  (409), `oneHouseholdBlockedReason` stops the click in the provider, and the create and
+  accept BFF routes rewrite that 409 into wording a user can act on. That last one is needed
+  because `callBackend` replaces every backend body with a generic line — the replacement
+  text is ours, so nothing is forwarded.
 - `lib/household.ts` holds the validation rules, deliberately free of `fetch`, React and
   `server-only` so both the forms and the BFF routes can use them — and so they can be
   unit-tested. Both sides validate, and they have to agree: a name the form accepts and the

@@ -3,7 +3,7 @@ import type {
   Household,
   HouseholdInvitation,
   InviteMemberRequest,
-} from "@/app/(app)/households/types/household.api";
+} from "@/types/household.api";
 import { apiFetch } from "@/lib/api/config";
 import { HOUSEHOLD_ENDPOINTS } from "@/lib/api/endpoints";
 

@@ -6,7 +6,7 @@ import Card from "@/components/shared/card";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { Button } from "@/components/ui/button";
 import { memberLabel } from "@/lib/household";
-import type { Household, HouseholdMember } from "../types/household.api";
+import type { Household, HouseholdMember } from "@/types/household.api";
 
 interface HouseholdMembersProps {
   household: Household;

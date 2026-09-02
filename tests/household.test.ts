@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   HOUSEHOLD_NAME_MAX_LENGTH,
   INVITED_EMAIL_MAX_LENGTH,
+  ONE_HOUSEHOLD_CONFLICT,
   memberLabel,
+  oneHouseholdBlockedReason,
   validateHouseholdName,
   validateInvitedEmail,
 } from "@/lib/household";
@@ -98,6 +100,45 @@ describe("memberLabel", () => {
   it("falls back when the display name is only whitespace", () => {
     expect(memberLabel({ displayName: "   ", email: "m@example.com" })).toBe(
       "m@example.com",
+    );
+  });
+});
+
+describe("oneHouseholdBlockedReason", () => {
+  it("allows someone in no household to create one", () => {
+    expect(oneHouseholdBlockedReason(null, "create")).toBeNull();
+  });
+
+  it("allows someone in no household to join one", () => {
+    expect(oneHouseholdBlockedReason(null, "join")).toBeNull();
+  });
+
+  it("treats an absent name the same as an explicit null", () => {
+    // The provider passes `household?.name ?? null`, so undefined should never reach it —
+    // but a rule about who can see the money should not depend on that.
+    expect(oneHouseholdBlockedReason(undefined, "create")).toBeNull();
+  });
+
+  it("blocks creating a second household, naming the current one", () => {
+    expect(oneHouseholdBlockedReason("De Guzman Household", "create")).toBe(
+      'You are already in "De Guzman Household". Leave it before creating another.',
+    );
+  });
+
+  it("blocks joining a second household, naming the current one", () => {
+    expect(oneHouseholdBlockedReason("De Guzman Household", "join")).toBe(
+      'You are already in "De Guzman Household". Leave it before joining another.',
+    );
+  });
+
+  it("still blocks when the name is unusable, falling back to the unnamed wording", () => {
+    // A blank name must not read as "no household" — that would turn a display problem
+    // into a permitted second household.
+    expect(oneHouseholdBlockedReason("   ", "create")).toBe(
+      ONE_HOUSEHOLD_CONFLICT.create,
+    );
+    expect(oneHouseholdBlockedReason("", "join")).toBe(
+      ONE_HOUSEHOLD_CONFLICT.join,
     );
   });
 });

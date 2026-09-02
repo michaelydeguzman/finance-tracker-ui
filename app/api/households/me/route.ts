@@ -1,4 +1,4 @@
-import type { CreateHouseholdRequest } from "@/app/(app)/households/types/household.api";
+import type { CreateHouseholdRequest } from "@/types/household.api";
 import { callBackend, defineRoute } from "@/lib/server/backend";
 import { validateHouseholdName } from "@/lib/household";
 

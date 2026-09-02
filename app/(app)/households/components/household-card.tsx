@@ -7,7 +7,7 @@ import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HOUSEHOLD_NAME_MAX_LENGTH } from "@/lib/household";
-import type { Household } from "../types/household.api";
+import type { Household } from "@/types/household.api";
 
 interface HouseholdCardProps {
   household: Household;

@@ -3,7 +3,7 @@
 import { MailIcon } from "lucide-react";
 import Card from "@/components/shared/card";
 import { Button } from "@/components/ui/button";
-import type { HouseholdInvitation } from "../types/household.api";
+import type { HouseholdInvitation } from "@/types/household.api";
 
 interface InvitationsCardProps {
   invitations: HouseholdInvitation[];

@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import {
   acceptInvitation,
@@ -14,8 +21,12 @@ import {
   renameHousehold,
   revokeHouseholdInvitation,
 } from "@/lib/api/households";
-import { validateHouseholdName, validateInvitedEmail } from "@/lib/household";
-import type { Household, HouseholdInvitation } from "../types/household.api";
+import {
+  oneHouseholdBlockedReason,
+  validateHouseholdName,
+  validateInvitedEmail,
+} from "@/lib/household";
+import type { Household, HouseholdInvitation } from "@/types/household.api";
 
 export interface UseHouseholdResult {
   household: Household | null;
@@ -38,8 +49,15 @@ export interface UseHouseholdResult {
 const errorMessage = (reason: unknown, fallback: string): string =>
   reason instanceof Error && reason.message ? reason.message : fallback;
 
+const HouseholdContext = createContext<UseHouseholdResult | null>(null);
+
 /**
- * All household state for the page, in one hook.
+ * All household state for the signed-in shell, in one place.
+ *
+ * Mounted in `app/(app)/layout.tsx` rather than on the households page, because the name
+ * banner sits above every page's title and the households page rewrites the very state it
+ * shows. Two independent fetches would let the banner keep naming a household the user has
+ * just left.
  *
  * Deliberately not `useOptimisticList`: every action here changes who can see the
  * household's money, and showing a member as removed before the server agrees would be a
@@ -50,7 +68,7 @@ const errorMessage = (reason: unknown, fallback: string): string =>
  * question — "where do I stand?" — and a page that has one but not the other can only
  * render a half-answer.
  */
-export function useHousehold(): UseHouseholdResult {
+export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   const [household, setHousehold] = useState<Household | null>(null);
   const [invitations, setInvitations] = useState<HouseholdInvitation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,6 +146,19 @@ export function useHousehold(): UseHouseholdResult {
 
   const create = useCallback(
     async (name: string): Promise<void> => {
+      // One household per person. The API answers 409, but `callBackend` replaces its
+      // body with a generic conflict line, so a click that got that far would report
+      // nothing the user could act on.
+      const blocked = oneHouseholdBlockedReason(
+        household?.name ?? null,
+        "create",
+      );
+
+      if (blocked) {
+        toast.error(blocked);
+        return;
+      }
+
       const validated = validateHouseholdName(name);
 
       if (!validated.ok) {
@@ -141,7 +172,7 @@ export function useHousehold(): UseHouseholdResult {
         "Could not create the household.",
       );
     },
-    [run],
+    [household, run],
   );
 
   const rename = useCallback(
@@ -212,13 +243,26 @@ export function useHousehold(): UseHouseholdResult {
 
   const accept = useCallback(
     async (invitationId: string): Promise<void> => {
+      // The same rule from the other direction, and the reason the Accept button is
+      // disabled rather than merely discouraged: accepting a second invitation cannot
+      // succeed, and a record carries one household id, not two.
+      const blocked = oneHouseholdBlockedReason(
+        household?.name ?? null,
+        "join",
+      );
+
+      if (blocked) {
+        toast.error(blocked);
+        return;
+      }
+
       await run(
         () => acceptInvitation(invitationId),
         "You are sharing finances with this household now.",
         "Could not accept the invitation.",
       );
     },
-    [run],
+    [household, run],
   );
 
   const decline = useCallback(
@@ -232,18 +276,57 @@ export function useHousehold(): UseHouseholdResult {
     [run],
   );
 
-  return {
-    household,
-    invitations,
-    loading,
-    pending,
-    create,
-    rename,
-    invite,
-    revoke,
-    removeMember,
-    leave,
-    accept,
-    decline,
-  };
+  const value = useMemo<UseHouseholdResult>(
+    () => ({
+      household,
+      invitations,
+      loading,
+      pending,
+      create,
+      rename,
+      invite,
+      revoke,
+      removeMember,
+      leave,
+      accept,
+      decline,
+    }),
+    [
+      household,
+      invitations,
+      loading,
+      pending,
+      create,
+      rename,
+      invite,
+      revoke,
+      removeMember,
+      leave,
+      accept,
+      decline,
+    ],
+  );
+
+  return (
+    <HouseholdContext.Provider value={value}>
+      {children}
+    </HouseholdContext.Provider>
+  );
+}
+
+/**
+ * The shell's household state.
+ *
+ * Throws outside the provider rather than returning a null-shaped default: a component
+ * rendered outside the signed-in shell would otherwise report "no household" to someone who
+ * has one, and the banner would quietly go missing instead of the mistake being visible.
+ */
+export function useHousehold(): UseHouseholdResult {
+  const value = useContext(HouseholdContext);
+
+  if (value === null) {
+    throw new Error("useHousehold must be used inside a HouseholdProvider.");
+  }
+
+  return value;
 }

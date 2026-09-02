@@ -1,8 +1,8 @@
 "use client";
 
+import { useHousehold } from "@/components/household/household-provider";
 import Card from "@/components/shared/card";
 import { Spinner } from "@/components/ui/spinner";
-import { useHousehold } from "../hooks/use-household";
 import CreateHouseholdCard from "./create-household-card";
 import HouseholdCard from "./household-card";
 import HouseholdInvites from "./household-invites";

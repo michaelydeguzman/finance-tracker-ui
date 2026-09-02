@@ -1,4 +1,4 @@
-import type { InviteMemberRequest } from "@/app/(app)/households/types/household.api";
+import type { InviteMemberRequest } from "@/types/household.api";
 import { callBackend, defineRoute } from "@/lib/server/backend";
 import { validateInvitedEmail } from "@/lib/household";
 

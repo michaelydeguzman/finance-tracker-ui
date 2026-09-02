@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { INVITED_EMAIL_MAX_LENGTH } from "@/lib/household";
-import type { HouseholdInvitation } from "../types/household.api";
+import type { HouseholdInvitation } from "@/types/household.api";
 
 interface HouseholdInvitesProps {
   invitations: HouseholdInvitation[];

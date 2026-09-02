@@ -78,6 +78,50 @@ export function validateInvitedEmail(email: unknown): Validated<string> {
   return { ok: true, value: trimmed };
 }
 
+/**
+ * One household per person, worded once.
+ *
+ * The API enforces the rule and answers 409, but `callBackend` replaces every backend body
+ * with a generic line, so without these the browser shows "That change conflicts with an
+ * existing record" for a situation that has an obvious explanation and an obvious fix.
+ */
+export const ONE_HOUSEHOLD_CONFLICT = {
+  create: "You are already in a household. Leave it before creating another.",
+  join: "You are already in a household. Leave it before joining another.",
+} as const;
+
+export type HouseholdIntent = keyof typeof ONE_HOUSEHOLD_CONFLICT;
+
+/**
+ * Why this person cannot create or join a household right now, or null when they can.
+ *
+ * A record carries a single household id, so someone in two households would have to
+ * choose which one each new row belonged to — hence the rule. Checked in the browser as
+ * well as by the API: the API is the authority, but a click that travels to the server only
+ * to come back refused is a worse way to learn something the page already knows.
+ *
+ * Names the household when the caller knows it, because "you are already in a household" is
+ * unhelpful to someone who has forgotten which.
+ */
+export function oneHouseholdBlockedReason(
+  currentHouseholdName: string | null | undefined,
+  intent: HouseholdIntent,
+): string | null {
+  if (currentHouseholdName === null || currentHouseholdName === undefined) {
+    return null;
+  }
+
+  const name = currentHouseholdName.trim();
+
+  if (name.length === 0) {
+    return ONE_HOUSEHOLD_CONFLICT[intent];
+  }
+
+  return intent === "create"
+    ? `You are already in "${name}". Leave it before creating another.`
+    : `You are already in "${name}". Leave it before joining another.`;
+}
+
 /** "Michael" when there is a display name, the address otherwise. */
 export function memberLabel(member: {
   displayName: string | null;
