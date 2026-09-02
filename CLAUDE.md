@@ -1,6 +1,8 @@
-# Finance Tracker UI
+# CLAUDE.md
 
-Next.js 15 (App Router) + React 19 + TypeScript + Tailwind v4 + shadcn/ui, with Auth.js
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+**Finance Tracker UI** — Next.js 15 (App Router) + React 19 + TypeScript + Tailwind v4 + shadcn/ui, with Auth.js
 (NextAuth v5) for sign-in and Recharts for the dashboard. It is the front end for the sibling
 `finance-tracker-api` repo (ASP.NET Core).
 
@@ -73,8 +75,12 @@ scopes by itself**: it requires a bearer token and filters every query to that t
 The BFF is no longer the only thing standing between the browser and the data, but these
 rules are still load-bearing:
 
-- Call `requireSession(request)` from `lib/server/backend.ts` before proxying anything, and
-  pass the `caller` it returns to `callBackend`, which attaches the bearer token.
+- Export session-gated handlers through `defineRoute` from `lib/server/backend.ts`, never a
+  bare `export async function GET`. The wrapper **is** the gate — it rejects the caller with no
+  session, enforces the content type when `{ json: true }`, awaits `context.params`, and turns
+  an unexpected throw into an opaque 500 labelled with the derived route. A handler cannot run
+  without a `caller`, because that is the only way it is given one. Pass that `caller` to
+  `callBackend`, which attaches the bearer token.
 - Access and refresh tokens live in the encrypted session cookie and are read with
   `getToken`. They are deliberately **absent from the session object** — putting them there
   would serve them to the browser through `/api/auth/session`.
@@ -82,15 +88,22 @@ rules are still load-bearing:
   stray client import is a build error rather than a leaked secret.
 - Never forward a backend response body or exception message to the browser. Use
   `callBackend` / `routeError`, which log detail server-side and return a safe message.
-- Validate every path segment and query value before it reaches a backend URL (`isUuid`,
-  `isCategoryType`). Never interpolate raw request input.
+- Validate every path segment and query value before it reaches a backend URL — `requireUuid`
+  for `[id]` segments, `isCategoryType` / `parseCategoryType` for query values. Never
+  interpolate raw request input. `requireUuid` builds a fresh `Response` per call on purpose:
+  a body can only be consumed once, so a shared instance would be empty the second time.
 - Use `apiFetch` from `lib/api/config.ts` on the client; it unwraps the API's
   `{ success, message, data }` envelope and bounces expired sessions to `/login`.
 
 Two kinds of route handler live under `app/api/**`, and they are not interchangeable:
 
 - **Session-gated** — `transactions`, `categories`, `recurring-transactions`,
-  `recurring-options`. Call `requireSession` first, then `callBackend` with its `caller`.
+  `recurring-options`. Every one is
+  `export const GET = defineRoute(config, async ({ request, caller, params }) => …)`.
+  `defineRoute` is declared as two overloads because Next type-checks what a route file
+  exports: a static route's handler is called with the request alone, and one optional
+  parameter covering both shapes is rejected as an invalid export — so annotate the params
+  (`defineRoute<{ id: string }>`) on dynamic routes.
 - **Deliberately session-less** — `app/api/account/**` (register, forgot-password,
   reset-password, verify-email, magic-link). These are reached by people who cannot sign in
   yet, so they take no session and must **gate themselves**: `account/register` re-checks
@@ -110,6 +123,22 @@ to the dashboard, the dashboard's first fetch 401s, and `apiFetch` bounces it ba
 
 The backend holds **real personal financial records**. Nothing here should generate bulk
 writes or destructive calls against it.
+
+## Client data layer
+
+A feature's browser-side data access is four files in four places, and each has one job:
+
+| Layer                   | Example                   | Job                                                                   |
+| ----------------------- | ------------------------- | --------------------------------------------------------------------- |
+| `lib/api/endpoints/*`   | `transactionListUrl`      | Builds the `/api/**` URL. Must mirror the BFF's own query validation. |
+| `lib/api/<resource>.ts` | `lib/api/transactions.ts` | Calls `apiFetch`, maps wire shape to domain shape                     |
+| `*.api.ts`              | `transaction.api.ts`      | Wire shapes — exactly what crosses the boundary                       |
+| `*.model.ts`            | `transaction.model.ts`    | Domain types — `Date`, `number`, `CategoryType`                       |
+
+The mapping step is load-bearing, not ceremony. The backend may serialize an enum as `0`,
+`"0"` or `"Income"`, so `lib/api/transactions.ts` runs every row through `coerceCategoryType`
+and `new Date(...)`; skip it and dashboard comparisons against `CategoryType` fail silently
+rather than loudly. Components should see the model type, never the response type.
 
 ## Stack and type strictness
 
@@ -167,6 +196,10 @@ Shared code lives in `components/`:
 - Prefer semantic Tailwind tokens (`bg-background`, `text-foreground`, `text-muted-foreground`,
   `border-border`) over ad-hoc `gray-*` utilities. Use `cn()` for conditional classes.
 - Avoid custom CSS classes; Tailwind utilities in JSX are the default.
+- Format money through `DISPLAY_CURRENCY` in `constants.ts` and the helpers in
+  `lib/currency.ts` — never a hardcoded currency or locale. The constant exists because the
+  dashboard once rendered USD while the income and expense lists rendered CAD, so the same
+  transaction looked like two different amounts depending on the page.
 - **Income and Expenses share one implementation** —
   `app/transactions/components/transaction-page-client.tsx`, parameterized by `CategoryType`.
   Differences belong in `app/transactions/config/views.tsx`, never in a duplicated component tree.
@@ -177,7 +210,9 @@ Shared code lives in `components/`:
   forms, and optimistic updates.
 - **Never show an empty "no data" state while a fetch is still in flight.** Use route
   `loading.tsx`, `Spinner`, or `Skeleton`.
-- For mutations, follow existing hook patterns (e.g. optimistic lists). Validate before submit.
+- For mutations use `hooks/use-optimistic-list.ts` — `useOptimistic` + `useTransition` with a
+  `sonner` toast and rollback on failure. `use-sortable-data.ts` and `use-debounced-value.ts`
+  are the other app-wide hooks. Validate before submit.
 - Add error handling around user inputs and API calls, with actionable user feedback — not
   just `console.error`.
 
@@ -211,13 +246,18 @@ knowing before writing a test:
   extract the logic into a pure module first — `lib/auth-providers.ts` exists for exactly
   this reason.
 
+The config also excludes `.claude/**`, which holds agent git worktrees — full checkouts of
+this repo. Without that the suite runs twice, half of it against whatever branch the worktree
+is on.
+
 Add or update tests alongside behavior changes, with descriptive names stating the behavior
 under test.
 
 ## Working in this repo
 
 - Use the **Context7 MCP** for library/API documentation, setup, and configuration steps
-  without waiting to be asked.
+  without waiting to be asked. `.vscode/mcp.json` declares the servers this repo expects:
+  `context7`, `shadcn`, `chrome-devtools`, `next-devtools`, `react-aria-docs`.
 - Prefer **small, reviewable diffs**. Avoid drive-by refactors and unrelated files.
 - For non-trivial behavior changes, explain the plan briefly first, apply changes in
   reviewable steps, and run `npm run build` and/or `npm run test`, reporting the outcome.
