@@ -40,7 +40,7 @@ export const TRANSACTION_VIEWS: Record<
     emptyText: "No income records yet. Start by logging your first entry.",
     icon: <WalletIcon className="size-5" />,
     iconClassName: "bg-emerald-500/10 text-emerald-600",
-    showDividers: true,
+    showDividers: false,
     showTrends: false,
   },
   [CategoryType.Expense]: {
