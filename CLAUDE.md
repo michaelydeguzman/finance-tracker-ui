@@ -196,6 +196,9 @@ Shared code lives in `components/`:
 - **Never use `alert()`, `confirm()`, or `prompt()`.** Use `sonner` toasts for messages and
   `ConfirmDeleteDialog` for destructive confirmation.
 - For error states use the route-group boundary `app/(app)/error.tsx`, not a bespoke wrapper.
+- `PageTitle` renders its optional `subtitle` **below** the heading. Recurring and Household
+  are its only two subtitle callers, so the order lives in the component rather than being
+  worked around per page.
 - The global `Toaster` must come from `@/components/ui/sonner` and sit **inside**
   `ThemeProvider` in `app/layout.tsx`, or `next-themes` won't apply correctly.
 - Prefer semantic Tailwind tokens (`bg-background`, `text-foreground`, `text-muted-foreground`,
@@ -239,6 +242,11 @@ household code at all** — they simply return more rows once you are in one.
 - `useHousehold` refetches after every mutation rather than updating optimistically. Every
   action here changes who can see the money, and showing a member as removed before the
   server agrees would be a lie about access, not a cosmetic reorder.
+- **Its mutations resolve to whether they worked**, and the forms clear only on `true`.
+  Failures are reported as toasts and never thrown, so the promise settles either way —
+  a form that cleared on submit threw away correct input on every rejected create, invite
+  or rename, and the rename editor closed too, which reads as "saved" for a rename that did
+  not happen. Keep the boolean if you touch these; awaiting alone does not tell you anything.
 
 ## Data loading and mutations
 
