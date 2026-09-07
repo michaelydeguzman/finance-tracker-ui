@@ -81,7 +81,14 @@ export function CategoryCombobox({
   );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    // `modal` is load-bearing, not decoration. This picker is rendered inside a
+    // Dialog, whose scroll lock cancels wheel events outside its own subtree —
+    // and `PopoverContent` is portaled to `document.body`, so the category list
+    // counts as outside and would not scroll. `modal` gives the popover its own
+    // lock covering its content. It also makes Radix mark the popover
+    // `pointer-events: auto` against the Dialog's page-wide `none`, without
+    // which the options ignore the mouse and only respond to Enter.
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           id={id}
