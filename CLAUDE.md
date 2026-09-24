@@ -64,6 +64,18 @@ boot until they exist.
 
 Copy from `.env.example` when setting up a new checkout. Never commit real secrets.
 
+## Production
+
+The UI runs on Vercel, against the API on Azure Container Apps in Canada Central. The runbook,
+including every environment variable, is `DEPLOYMENT.md` in the `finance-tracker-api` repo.
+
+- `vercel.json` pins functions to Montréal (`yul1`). Every request's financial data passes
+  through the BFF, and Vercel's default region is Washington, D.C. — pinning keeps it in
+  Canada, beside the API, instead of crossing the border twice per call.
+- Environment variables are scoped to **Production only**. A preview deployment of a pull
+  request must not hold credentials that reach real records.
+- `NEXT_PUBLIC_APP_URL` is inlined at build time, so changing it needs a redeploy.
+
 ## Backend-for-frontend boundary
 
 Every page and `/api/*` route sits behind Auth.js (`auth.ts`, `middleware.ts`), except the
