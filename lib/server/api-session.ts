@@ -53,11 +53,15 @@ function toApiSession(dto: AuthResultDto): ApiSession {
 /**
  * Posts to an auth endpoint and unwraps the API's `{ success, message, data }` envelope.
  *
- * Returns the payload, or null for any failure. Callers deliberately cannot tell *why* a
- * call failed: the API answers identically for an unknown address and a wrong password, and
- * relaying a distinction it does not make would invent one.
+ * Reports whether the call succeeded and, separately, its payload — several succeed with no
+ * data at all. Callers deliberately cannot tell *why* a call failed: the API answers
+ * identically for an unknown address and a wrong password, and relaying a distinction it does
+ * not make would invent one.
  */
-async function postAuth<T>(path: string, body: unknown): Promise<T | null> {
+async function sendAuth<T>(
+  path: string,
+  body: unknown,
+): Promise<{ ok: boolean; data: T | null }> {
   // Every auth endpoint on the API requires the shared secret, not just the SSO exchange.
   // The API's address is public and who may sign up is decided here, so answering direct
   // callers would let anyone register or sign in past AUTH_SIGNUP_MODE.
@@ -69,7 +73,7 @@ async function postAuth<T>(path: string, body: unknown): Promise<T | null> {
     console.error(
       `[auth] API_BFF_SECRET is not configured; cannot call ${path}.`,
     );
-    return null;
+    return FAILED;
   }
 
   try {
@@ -83,7 +87,7 @@ async function postAuth<T>(path: string, body: unknown): Promise<T | null> {
     if (!response.ok) {
       // Logged server-side only — the body can carry detail the browser must not see.
       console.error(`[auth] POST ${path} -> ${response.status}`);
-      return null;
+      return FAILED;
     }
 
     const envelope = (await response.json()) as {
@@ -91,11 +95,32 @@ async function postAuth<T>(path: string, body: unknown): Promise<T | null> {
       data?: T;
     };
 
-    return envelope?.success === false ? null : (envelope?.data ?? null);
+    return envelope?.success === false
+      ? FAILED
+      : { ok: true, data: envelope?.data ?? null };
   } catch (reason) {
     console.error(`[auth] POST ${path} failed:`, reason);
-    return null;
+    return FAILED;
   }
+}
+
+const FAILED = { ok: false, data: null } as const;
+
+/** The payload of a call that returns one, or null for any failure. */
+async function postAuth<T>(path: string, body: unknown): Promise<T | null> {
+  return (await sendAuth<T>(path, body)).data;
+}
+
+/**
+ * Whether a call succeeded, for the ones that answer with no data at all — reset,
+ * confirmation, registration. Reading their null payload as failure told people a password
+ * change had not happened after it had.
+ */
+async function postAuthSucceeded(
+  path: string,
+  body: unknown,
+): Promise<boolean> {
+  return (await sendAuth<unknown>(path, body)).ok;
 }
 
 /**
@@ -185,7 +210,7 @@ export async function requestRegistration(input: {
   password: string;
   displayName?: string | undefined;
 }): Promise<boolean> {
-  return (await postAuth<unknown>("/v1/auth/register", input)) !== null;
+  return postAuthSucceeded("/v1/auth/register", input);
 }
 
 export async function requestMagicLink(email: string): Promise<void> {
@@ -200,14 +225,20 @@ export async function confirmPasswordReset(
   token: string,
   newPassword: string,
 ): Promise<boolean> {
-  return (
-    (await postAuth<unknown>("/v1/auth/password-reset/confirm", {
-      token,
-      newPassword,
-    })) !== null
-  );
+  return postAuthSucceeded("/v1/auth/password-reset/confirm", {
+    token,
+    newPassword,
+  });
 }
 
-export async function verifyEmail(token: string): Promise<boolean> {
-  return (await postAuth<unknown>("/v1/auth/verify-email", { token })) !== null;
+/**
+ * Confirms an address. Takes the password chosen at sign-up as well as the emailed token: the
+ * token proves control of the inbox, not that the clicker chose this account's password, and
+ * the API refuses to vouch for a password on a click alone.
+ */
+export async function verifyEmail(
+  token: string,
+  password: string,
+): Promise<boolean> {
+  return postAuthSucceeded("/v1/auth/verify-email", { token, password });
 }

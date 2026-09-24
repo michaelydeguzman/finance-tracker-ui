@@ -134,6 +134,11 @@ Two kinds of route handler live under `app/api/**`, and they are not interchange
   real owner rather than reporting the conflict. Do not add a more specific error message;
   that would undo the account-enumeration defense on both sides of the boundary.
 
+  `account/verify-email` takes the **password chosen at sign-up** as well as the token, and
+  its page is a form rather than confirming on arrival. The email goes to the address's owner
+  whoever registered it, so a click alone would let an owner who never signed up vouch for a
+  stranger's password (pre-hijacking; see `MULTI_TENANCY.md` in the API repo).
+
 One shared definition of "signed in": `resolveSessionError` in `lib/session-state.ts`. The
 middleware, the sign-in page, the app shell, and the BFF all consult it, and a cookie
 carrying a user but no API credentials must read as unusable in every one of them. When
