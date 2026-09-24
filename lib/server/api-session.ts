@@ -57,15 +57,25 @@ function toApiSession(dto: AuthResultDto): ApiSession {
  * call failed: the API answers identically for an unknown address and a wrong password, and
  * relaying a distinction it does not make would invent one.
  */
-async function postAuth<T>(
-  path: string,
-  body: unknown,
-  headers: Record<string, string> = {},
-): Promise<T | null> {
+async function postAuth<T>(path: string, body: unknown): Promise<T | null> {
+  // Every auth endpoint on the API requires the shared secret, not just the SSO exchange.
+  // The API's address is public and who may sign up is decided here, so answering direct
+  // callers would let anyone register or sign in past AUTH_SIGNUP_MODE.
+  const secret = process.env.API_BFF_SECRET;
+
+  if (!secret) {
+    // The API would refuse the call anyway; failing here keeps a misconfigured deployment
+    // from looking like an API outage.
+    console.error(
+      `[auth] API_BFF_SECRET is not configured; cannot call ${path}.`,
+    );
+    return null;
+  }
+
   try {
     const response = await fetch(`${apiBaseUrl()}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...headers },
+      headers: { "Content-Type": "application/json", "X-Bff-Secret": secret },
       body: JSON.stringify(body),
       cache: "no-store",
     });
@@ -91,9 +101,9 @@ async function postAuth<T>(
 /**
  * Turns a completed SSO sign-in into an API session.
  *
- * Guarded by a shared secret because it mints a session from a provider subject rather than
- * a credential — any caller able to reach it could impersonate anyone, so it must never be
- * reachable from a browser.
+ * The sharpest reason the shared secret exists: this mints a session from a provider subject
+ * rather than a credential — any caller able to reach it could impersonate anyone, so it must
+ * never be reachable from a browser. `postAuth` attaches the secret.
  */
 export async function exchangeExternalLogin(input: {
   provider: "Google" | "GitHub";
@@ -102,18 +112,7 @@ export async function exchangeExternalLogin(input: {
   emailVerified: boolean;
   displayName?: string | undefined;
 }): Promise<ApiSession | null> {
-  const secret = process.env.API_BFF_SECRET;
-
-  if (!secret) {
-    console.error(
-      "[auth] API_BFF_SECRET is not configured; cannot exchange an SSO sign-in.",
-    );
-    return null;
-  }
-
-  const dto = await postAuth<AuthResultDto>("/v1/auth/exchange", input, {
-    "X-Bff-Secret": secret,
-  });
+  const dto = await postAuth<AuthResultDto>("/v1/auth/exchange", input);
 
   return dto ? toApiSession(dto) : null;
 }

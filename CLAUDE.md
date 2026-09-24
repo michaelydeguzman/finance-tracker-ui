@@ -58,9 +58,12 @@ boot until they exist.
   who may sign in: `allowlist` (default) honours `AUTH_ALLOWED_EMAILS`, and an empty list means
   nobody can sign in — intentional fail-closed behavior, not a bug. `open` lets anyone
   register and get their own tenant.
-- `API_BFF_SECRET` must match `Auth:BffSharedSecret` in the API's user-secrets. It guards the
-  SSO exchange endpoint, which mints a session from a provider subject rather than a
-  credential, so anything holding it can sign in as anyone.
+- `API_BFF_SECRET` must match `Auth:BffSharedSecret` in the API's user-secrets. **Every** API
+  auth endpoint requires it, and `postAuth` in `lib/server/api-session.ts` attaches it to every
+  call. The API's address is public, so this is what makes `AUTH_SIGNUP_MODE` binding: without
+  it, anyone could register (or claim an address before its owner) by calling the API directly.
+  The sharpest endpoint is the SSO exchange, which mints a session from a provider subject
+  rather than a credential, so anything holding the secret can sign in as anyone.
 
 Copy from `.env.example` when setting up a new checkout. Never commit real secrets.
 
