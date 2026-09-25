@@ -119,7 +119,9 @@ export default function CategoryList(props: CategoryListProps) {
         </Button>
       </div>
 
-      <div className="h-[calc(100vh-360px)] overflow-auto">
+      {/* A fixed, internally scrolling pane only while the two lists sit side by
+          side; stacked below `lg`, it would nest a scroller inside the page's. */}
+      <div className="lg:h-[calc(100vh-360px)] lg:overflow-auto">
         {pending ? (
           <Spinner />
         ) : (
