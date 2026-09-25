@@ -22,7 +22,7 @@ export default function HeaderNav() {
             className={cn(
               "text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold transition-colors",
               isActive &&
-                "text-foreground underline decoration-2 underline-offset-8",
+                "text-foreground decoration-primary underline decoration-2 underline-offset-8",
             )}
           >
             {route.title}
