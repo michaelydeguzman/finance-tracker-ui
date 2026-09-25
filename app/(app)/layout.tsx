@@ -25,7 +25,7 @@ export default async function AppShellLayout({
           every page's title, and the households page rewrites it. Two fetches would let
           the banner keep naming a household the user has just left. */}
       <HouseholdProvider>
-        <main className="flex w-full flex-grow flex-col px-4 py-5 md:px-[80px]">
+        <main className="flex w-full flex-grow flex-col px-4 py-5 md:px-8 lg:px-[80px]">
           <HouseholdBanner />
 
           {/* The gap lives here rather than on <main> so the banner can sit close to the
