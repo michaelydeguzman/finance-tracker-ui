@@ -58,11 +58,26 @@ boot until they exist.
   who may sign in: `allowlist` (default) honours `AUTH_ALLOWED_EMAILS`, and an empty list means
   nobody can sign in — intentional fail-closed behavior, not a bug. `open` lets anyone
   register and get their own tenant.
-- `API_BFF_SECRET` must match `Auth:BffSharedSecret` in the API's user-secrets. It guards the
-  SSO exchange endpoint, which mints a session from a provider subject rather than a
-  credential, so anything holding it can sign in as anyone.
+- `API_BFF_SECRET` must match `Auth:BffSharedSecret` in the API's user-secrets. **Every** API
+  auth endpoint requires it, and `postAuth` in `lib/server/api-session.ts` attaches it to every
+  call. The API's address is public, so this is what makes `AUTH_SIGNUP_MODE` binding: without
+  it, anyone could register (or claim an address before its owner) by calling the API directly.
+  The sharpest endpoint is the SSO exchange, which mints a session from a provider subject
+  rather than a credential, so anything holding the secret can sign in as anyone.
 
 Copy from `.env.example` when setting up a new checkout. Never commit real secrets.
+
+## Production
+
+The UI runs on Vercel, against the API on Azure Container Apps in Canada Central. The runbook,
+including every environment variable, is `DEPLOYMENT.md` in the `finance-tracker-api` repo.
+
+- `vercel.json` pins functions to Montréal (`yul1`). Every request's financial data passes
+  through the BFF, and Vercel's default region is Washington, D.C. — pinning keeps it in
+  Canada, beside the API, instead of crossing the border twice per call.
+- Environment variables are scoped to **Production only**. A preview deployment of a pull
+  request must not hold credentials that reach real records.
+- `NEXT_PUBLIC_APP_URL` is inlined at build time, so changing it needs a redeploy.
 
 ## Backend-for-frontend boundary
 
@@ -118,6 +133,11 @@ Two kinds of route handler live under `app/api/**`, and they are not interchange
   They also answer **identically whether or not the address exists** — the API emails the
   real owner rather than reporting the conflict. Do not add a more specific error message;
   that would undo the account-enumeration defense on both sides of the boundary.
+
+  `account/verify-email` takes the **password chosen at sign-up** as well as the token, and
+  its page is a form rather than confirming on arrival. The email goes to the address's owner
+  whoever registered it, so a click alone would let an owner who never signed up vouch for a
+  stranger's password (pre-hijacking; see `MULTI_TENANCY.md` in the API repo).
 
 One shared definition of "signed in": `resolveSessionError` in `lib/session-state.ts`. The
 middleware, the sign-in page, the app shell, and the BFF all consult it, and a cookie

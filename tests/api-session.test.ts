@@ -147,7 +147,7 @@ describe("envelope handling", () => {
     );
     const { verifyEmail } = await loadModule();
 
-    await expect(verifyEmail("a-token")).resolves.toBe(false);
+    await expect(verifyEmail("a-token", "a password")).resolves.toBe(false);
   });
 });
 
@@ -214,5 +214,153 @@ describe("refreshApiSession", () => {
     ]);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("the shared secret", () => {
+  // The API's auth endpoints are all BFF-only: its address is public, and who may sign up is
+  // decided here, in the BFF. A call that went out without the secret would be refused by
+  // the API — and one that could go out without it would mean the API was not checking.
+  const calls: Array<
+    [string, (m: typeof import("@/lib/server/api-session")) => Promise<unknown>]
+  > = [
+    ["login", (m) => m.loginWithPassword("person@example.com", "a password")],
+    ["magic-link/consume", (m) => m.consumeMagicLink("a-token")],
+    ["refresh", (m) => m.refreshApiSession("a-refresh-token")],
+    [
+      "register",
+      (m) =>
+        m.requestRegistration({
+          email: "person@example.com",
+          password: "a sufficiently long password",
+        }),
+    ],
+    ["magic-link/request", (m) => m.requestMagicLink("person@example.com")],
+    [
+      "password-reset/request",
+      (m) => m.requestPasswordReset("person@example.com"),
+    ],
+    [
+      "password-reset/confirm",
+      (m) => m.confirmPasswordReset("a-token", "a new long password"),
+    ],
+    ["verify-email", (m) => m.verifyEmail("a-token", "a password")],
+  ];
+
+  it.each(calls)("is sent with %s", async (path, call) => {
+    const fetchMock = vi.fn().mockResolvedValue(okEnvelope(authResult));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await call(await loadModule());
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`https://api.test/api/v1/auth/${path}`);
+    expect((init.headers as Record<string, string>)["X-Bff-Secret"]).toBe(
+      "shared-secret",
+    );
+  });
+
+  it.each(calls)(
+    "keeps %s from calling the API at all when it is not configured",
+    async (_path, call) => {
+      delete process.env.API_BFF_SECRET;
+      const fetchMock = vi.fn();
+      vi.stubGlobal("fetch", fetchMock);
+
+      await call(await loadModule());
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    },
+  );
+});
+
+describe("calls the API answers with no data", () => {
+  // Reset, confirmation and registration succeed with an envelope whose data is null. Reading
+  // "no data" as "failed" told people their password change had not happened after it had.
+  const noData = () => okEnvelope(null);
+
+  it("reports a password reset that succeeded", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(noData()));
+    const { confirmPasswordReset } = await loadModule();
+
+    await expect(
+      confirmPasswordReset("a-token", "a new long password"),
+    ).resolves.toBe(true);
+  });
+
+  it("reports a confirmation that succeeded", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(noData()));
+    const { verifyEmail } = await loadModule();
+
+    await expect(verifyEmail("a-token", "a password")).resolves.toBe(true);
+  });
+
+  it("reports a registration the API accepted", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(
+            JSON.stringify({ success: true, message: null, data: null }),
+            { status: 202, headers: { "Content-Type": "application/json" } },
+          ),
+        ),
+    );
+    const { requestRegistration } = await loadModule();
+
+    await expect(
+      requestRegistration({
+        email: "person@example.com",
+        password: "a sufficiently long password",
+      }),
+    ).resolves.toBe(true);
+  });
+
+  it("still reports a rejected one as failed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("Bad Request", { status: 400 })),
+    );
+    const { confirmPasswordReset } = await loadModule();
+
+    await expect(
+      confirmPasswordReset("a-token", "a new long password"),
+    ).resolves.toBe(false);
+  });
+
+  it("still reports success:false as failed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(
+            JSON.stringify({ success: false, message: "no", data: null }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+        ),
+    );
+    const { verifyEmail } = await loadModule();
+
+    await expect(verifyEmail("a-token", "a password")).resolves.toBe(false);
+  });
+});
+
+describe("verifyEmail", () => {
+  it("sends the password alongside the token", async () => {
+    // The API confirms an address only for whoever knows the password chosen at sign-up, so
+    // a click on the link alone cannot vouch for a stranger's password.
+    const fetchMock = vi.fn().mockResolvedValue(okEnvelope(null));
+    vi.stubGlobal("fetch", fetchMock);
+    const { verifyEmail } = await loadModule();
+
+    await verifyEmail("a-token", "a password");
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({
+      token: "a-token",
+      password: "a password",
+    });
   });
 });
