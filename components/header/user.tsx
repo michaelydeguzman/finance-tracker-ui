@@ -64,6 +64,10 @@ export default async function UserHeader() {
             </button>
           </DropdownMenuItem>
         </form>
+        <DropdownMenuSeparator />
+        <p className="text-muted-foreground px-2 py-1 text-xs">
+          v{process.env.NEXT_PUBLIC_APP_VERSION}
+        </p>
       </DropdownMenuContent>
     </DropdownMenu>
   );
