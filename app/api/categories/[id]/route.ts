@@ -1,6 +1,7 @@
 import type { UpsertCategoryRequest } from "@/app/(app)/categories/types/category.api";
 import { callBackend, defineRoute, requireUuid } from "@/lib/server/backend";
 import { isCategoryType } from "@/lib/category-type";
+import { categoryConflictMessage } from "../common/utils";
 
 type Params = { id: string };
 
@@ -35,9 +36,17 @@ export const PUT = defineRoute<Params>(
       caller,
     );
 
-    return result.ok
-      ? Response.json(result.data, { status: 200 })
-      : result.response;
+    if (result.ok) return Response.json(result.data, { status: 200 });
+
+    // The owner already has a category of this type with this name.
+    if (result.response.status === 409) {
+      return Response.json(
+        { error: categoryConflictMessage("save") },
+        { status: 409 },
+      );
+    }
+
+    return result.response;
   },
 );
 
@@ -51,7 +60,18 @@ export const DELETE = defineRoute<Params>({}, async ({ caller, params }) => {
     caller,
   );
 
-  return result.ok
-    ? Response.json({ message: "Category deleted successfully." })
-    : result.response;
+  if (result.ok) {
+    return Response.json({ message: "Category deleted successfully." });
+  }
+
+  // Transactions or recurring templates are still filed under it. Deleting it
+  // would once have taken them with it; now the backend refuses.
+  if (result.response.status === 409) {
+    return Response.json(
+      { error: categoryConflictMessage("delete") },
+      { status: 409 },
+    );
+  }
+
+  return result.response;
 });

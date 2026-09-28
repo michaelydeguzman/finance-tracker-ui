@@ -240,6 +240,16 @@ export default function CategoryList(props: CategoryListProps) {
         }}
         title="Delete category?"
         itemName={pendingDelete?.name ?? "this category"}
+        description={
+          <>
+            This will permanently remove{" "}
+            <span className="text-foreground font-medium">
+              {pendingDelete?.name ?? "this category"}
+            </span>
+            . A category that any transaction or recurring transaction still
+            uses cannot be deleted — move those to another category first.
+          </>
+        }
         onConfirm={() => {
           if (pendingDelete) onDelete?.(pendingDelete.id);
           setPendingDelete(null);
