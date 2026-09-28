@@ -78,6 +78,9 @@ including every environment variable, is `DEPLOYMENT.md` in the `finance-tracker
 - Environment variables are scoped to **Production only**. A preview deployment of a pull
   request must not hold credentials that reach real records.
 - `NEXT_PUBLIC_APP_URL` is inlined at build time, so changing it needs a redeploy.
+- The release version is `version` in `package.json` — semver, bumped by hand in the pull
+  request that makes a release. `next.config.ts` inlines it as `NEXT_PUBLIC_APP_VERSION`, shown
+  at the foot of the user menu. The API versions independently (`X-App-Version` on `/healthz`).
 
 ## Backend-for-frontend boundary
 
