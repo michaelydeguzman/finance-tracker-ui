@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { Category } from "@/app/(app)/categories/types/category.model";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
+import { cn } from "@/lib/utils";
 
 /** Module-level so it stays referentially stable across renders. */
 const categoryName = (category: Category) => category.name;
@@ -169,7 +170,13 @@ export default function CategoryList(props: CategoryListProps) {
                         </div>
                       ) : (
                         showActions && (
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div
+                            className={cn(
+                              "transition-opacity duration-300",
+                              "opacity-0 [@media(hover:none)]:opacity-100",
+                              "group-hover:opacity-100 group-focus-within:opacity-100",
+                            )}
+                          >
                             {canEdit && (
                               <Button
                                 size="sm"
