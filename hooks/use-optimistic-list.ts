@@ -2,6 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { errorMessage } from "@/lib/utils";
 
 export interface OptimisticState<T> {
   data: T[];
@@ -62,7 +63,7 @@ export function useOptimisticList<
         // No rollback needed: useOptimistic discards the optimistic entry when
         // the transition settles, leaving `items` as the source of truth.
         console.error("Failed to add item:", error);
-        toast.error(`Failed to add ${itemLabel}.`);
+        toast.error(errorMessage(error, `Failed to add ${itemLabel}.`));
       }
     });
   };
@@ -78,7 +79,7 @@ export function useOptimisticList<
         toast.success(`${updates.name ?? itemLabel} updated successfully`);
       } catch (error) {
         console.error("Failed to update item:", error);
-        toast.error(`Failed to update ${itemLabel}.`);
+        toast.error(errorMessage(error, `Failed to update ${itemLabel}.`));
       }
     });
   };
@@ -91,8 +92,10 @@ export function useOptimisticList<
         setItems((prev) => prev.filter((item) => item.id !== id));
         toast.success(`${itemLabel} deleted successfully`);
       } catch (error) {
+        // The row reappears on its own (see addItem); the message says why, e.g. a
+        // category still in use.
         console.error("Failed to delete item:", error);
-        toast.error(`Failed to delete ${itemLabel}.`);
+        toast.error(errorMessage(error, `Failed to delete ${itemLabel}.`));
       }
     });
   };
