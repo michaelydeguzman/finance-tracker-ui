@@ -106,7 +106,7 @@ export function RecurringList({
       ) : sortedData.length === 0 ? (
         <p className="text-muted-foreground py-6 text-sm">{emptyText}</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col">
           {sortedData.map((template) => {
             const busy = busyIds.has(template.id);
             const actions = availableActions(template.status);
@@ -116,7 +116,12 @@ export function RecurringList({
             return (
               <li
                 key={template.id}
-                className="bg-muted flex flex-col gap-3 rounded-xl p-3 sm:flex-row sm:items-center"
+                className={cn(
+                  "border-border hover:bg-accent/50 flex flex-col gap-3 border-b px-3 py-3 transition-colors last:border-b-0 sm:flex-row sm:items-center",
+                  // Paused and cancelled schedules recede so the active ones
+                  // stand out under the "All" filter.
+                  template.status !== "Active" && "opacity-60",
+                )}
               >
                 <div
                   className={cn(
