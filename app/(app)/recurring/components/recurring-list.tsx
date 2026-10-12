@@ -112,23 +112,24 @@ export function RecurringList({
             const actions = availableActions(template.status);
             const due = isDue(template.status, template.nextOccurrenceDate);
             const isIncome = template.categoryType === CategoryType.Income;
+            // Paused and cancelled schedules drop their colour cues so the
+            // active ones stand out under the "All" filter. Text stays at
+            // full contrast; the status badge already says why.
+            const inactive = template.status !== "Active";
 
             return (
               <li
                 key={template.id}
-                className={cn(
-                  "border-border hover:bg-accent/50 flex flex-col gap-3 border-b px-3 py-3 transition-colors last:border-b-0 sm:flex-row sm:items-center",
-                  // Paused and cancelled schedules recede so the active ones
-                  // stand out under the "All" filter.
-                  template.status !== "Active" && "opacity-60",
-                )}
+                className="border-border flex flex-col gap-3 border-b px-3 py-3 last:border-b-0 sm:flex-row sm:items-center"
               >
                 <div
                   className={cn(
                     "hidden size-10 shrink-0 items-center justify-center rounded-full sm:flex",
-                    isIncome
-                      ? "bg-emerald-500/10 text-emerald-600"
-                      : "bg-destructive/10 text-destructive",
+                    inactive
+                      ? "bg-muted text-muted-foreground"
+                      : isIncome
+                        ? "bg-emerald-500/10 text-emerald-600"
+                        : "bg-destructive/10 text-destructive",
                   )}
                 >
                   <RepeatIcon className="size-5" aria-hidden="true" />
@@ -178,7 +179,12 @@ export function RecurringList({
                 </div>
 
                 <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
-                  <span className="font-semibold tabular-nums whitespace-nowrap">
+                  <span
+                    className={cn(
+                      "font-semibold tabular-nums whitespace-nowrap",
+                      inactive && "text-muted-foreground",
+                    )}
+                  >
                     {isIncome ? "+ " : "− "}
                     {formatCurrency(template.amount)}
                   </span>
