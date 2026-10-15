@@ -1,6 +1,7 @@
 import type { UpsertCategoryRequest } from "@/app/(app)/categories/types/category.api";
 import { callBackend, defineRoute } from "@/lib/server/backend";
 import { isCategoryType, parseCategoryType } from "@/lib/category-type";
+import { categoryConflictMessage } from "./common/utils";
 
 export const GET = defineRoute({}, async ({ request, caller }) => {
   const { searchParams } = new URL(request.url);
@@ -55,7 +56,14 @@ export const POST = defineRoute({ json: true }, async ({ request, caller }) => {
     caller,
   );
 
-  return result.ok
-    ? Response.json(result.data, { status: 201 })
-    : result.response;
+  if (result.ok) return Response.json(result.data, { status: 201 });
+
+  if (result.response.status === 409) {
+    return Response.json(
+      { error: categoryConflictMessage("save") },
+      { status: 409 },
+    );
+  }
+
+  return result.response;
 });

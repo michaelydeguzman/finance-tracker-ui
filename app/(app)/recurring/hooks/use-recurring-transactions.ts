@@ -10,6 +10,7 @@ import {
   updateRecurringTransaction,
 } from "@/lib/api/recurring";
 import type { RecurringTransition } from "@/lib/recurring-status";
+import { errorMessage } from "@/lib/utils";
 import { byNextOccurrence } from "../data/recurring-data";
 import type {
   RecurringTransaction,
@@ -43,9 +44,6 @@ const toUpsertPayload = (
   startDate: input.startDate,
   endDate: input.endDate?.trim() ? input.endDate : null,
 });
-
-const errorMessage = (reason: unknown, fallback: string): string =>
-  reason instanceof Error && reason.message ? reason.message : fallback;
 
 const PAST_TENSE: Record<RecurringTransition, string> = {
   pause: "paused",
